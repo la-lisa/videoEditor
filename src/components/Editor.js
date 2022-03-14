@@ -1,6 +1,6 @@
 import { createRef, useCallback, useEffect, useMemo, useState } from "react";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { Box, Button, CircularProgress, Grid, Slider, Stack } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Slider, Stack, useTheme } from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import { PauseCircle, PlayCircle } from "@mui/icons-material";
@@ -11,12 +11,14 @@ const ffmpeg = createFFmpeg({ log: true });
 export default function Editor() {
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
+  const [newUrl, setNewUrl] = useState(null);
   const [canvasFormat, setCanvasFormat] = useState(null);
   const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
   useEventListener("keydown", handleKeydown);
+  const theme = useTheme();
 
   const videoElemRef = createRef();
 
@@ -31,6 +33,17 @@ export default function Editor() {
 
   const writeFile = useCallback(async () => {
     await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
+    await ffmpeg.run(
+      '-i',
+      'temp.mp4',
+      '-vf',
+      'scale=1280:720:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1:color=white',
+      // '-aspect',
+      // canvasFormat.replace(' ', '').replace('/', ':'),
+      'temp_2.mp4'
+    );
+    const data = ffmpeg.FS('readFile', 'temp_2.mp4');
+    setNewUrl(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
   }, [video]);
 
   useEffect(() => {
@@ -87,7 +100,9 @@ export default function Editor() {
             <Stack spacing={1}>
               {video && videoUrl && canvasFormat ? (
                   <>
-                    <video ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
+                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', maxHeight: '60vh' }}>
+                      <video className="video" style={{ width: '100%', height: '100%', objectFit: 'contain' }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
+                    </Box>
                     <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
                       {/* Timeline */}
                       <Box onClick={togglePlaying} sx={{ display: "flex", my: 1 }}>
@@ -103,6 +118,9 @@ export default function Editor() {
                       />
                     </Stack>
                     <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
+                    { newUrl &&
+                      <video src={newUrl} />
+                    }
                   </>
                 ) : (
                   <DropzoneContainer setVideo={setVideo}/>
