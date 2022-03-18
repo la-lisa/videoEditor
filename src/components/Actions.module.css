@@ -1,0 +1,11 @@
+.actionsPanel {
+    overflow: hidden;
+}
+
+.collapsed {
+    width: 0;
+}
+
+.open {
+    width: 100%;
+}

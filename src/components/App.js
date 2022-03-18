@@ -1,6 +1,7 @@
 import Editor from "./Editor.js"
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { Container, CssBaseline } from "@mui/material";
+import { Container, CssBaseline, Stack } from "@mui/material";
+import Actions from "./Actions";
 
 function App() {
   const theme = createTheme({
@@ -14,7 +15,10 @@ function App() {
       <CssBaseline/>
       <Container className="App" maxWidth="lg">
         <h1>ffmpeg.wasm video editor</h1>
-        <Editor/>
+        <Stack direction="row" spacing={4}>
+          <Editor />
+          <Actions />
+        </Stack>
       </Container>
     </ThemeProvider>
   );

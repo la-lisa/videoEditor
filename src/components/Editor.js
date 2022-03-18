@@ -1,6 +1,14 @@
 import { createRef, useCallback, useEffect, useMemo, useState } from "react";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { Box, Button, CircularProgress, Grid, Slider, Stack, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Grid,
+  Slider,
+  Stack,
+  useTheme
+} from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import { PauseCircle, PlayCircle } from "@mui/icons-material";
@@ -100,7 +108,7 @@ export default function Editor() {
             <Stack spacing={1}>
               {video && videoUrl && canvasFormat ? (
                   <>
-                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', maxHeight: '60vh' }}>
+                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed' }}>
                       <video className="video" style={{ width: '100%', height: '100%', objectFit: 'contain' }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
                     </Box>
                     <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
