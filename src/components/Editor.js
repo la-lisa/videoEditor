@@ -28,6 +28,8 @@ export default function Editor() {
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [videoFit, setVideoFit] = useState('contain');
+  const [bgColor, setBgColor] = useState('#000000');
   useEventListener("keydown", handleKeydown);
   const theme = useTheme();
 
@@ -44,18 +46,26 @@ export default function Editor() {
 
   const writeFile = useCallback(async () => {
     await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
-    await ffmpeg.run(
-      '-i',
-      'temp.mp4',
-      '-vf',
-      'scale=1280:720:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1:color=white',
-      // '-aspect',
-      // canvasFormat.replace(' ', '').replace('/', ':'),
-      'temp_2.mp4'
-    );
+    if (videoFit === "cover") {
+      await ffmpeg.run(
+        '-i',
+        'temp.mp4',
+        '-vf',
+        'crop=ih*' + canvasFormat + ':ih',
+        'temp_2.mp4',
+      );
+    } else if (videoFit === "contain") {
+      await ffmpeg.run(
+        '-i',
+        'temp.mp4',
+        '-vf',
+        'pad=width=max(iw\\,ih*('+ canvasFormat + ')):height=ow/('+ canvasFormat + '):x=(ow-iw)/2:y=(oh-ih)/2:color=' + bgColor + ',setsar=1',
+        'temp_2.mp4',
+      );
+    }
     const data = ffmpeg.FS('readFile', 'temp_2.mp4');
-    setNewUrl(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
-  }, [video]);
+    setNewUrl(URL.createObjectURL(new Blob([data.buffer], {type: 'image/gif'})));
+  }, [video, canvasFormat, videoFit, bgColor]);
 
   useEffect(() => {
     const load = async () => {
@@ -117,8 +127,8 @@ export default function Editor() {
             <Stack spacing={1}>
               {video && videoUrl && canvasFormat ? (
                   <>
-                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed' }}>
-                      <video className="video" style={{ width: '100%', height: '100%', objectFit: 'contain' }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
+                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', bgcolor: bgColor, }}>
+                      <video className="video" style={{ width: '100%', height: '100%', objectFit: videoFit }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
                     </Box>
                     <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
                       {/* Timeline */}
@@ -136,7 +146,8 @@ export default function Editor() {
                     </Stack>
                     <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
                     { newUrl &&
-                      <video src={newUrl} />
+                      <video src={newUrl} style={{ border: theme.spacing(0.25),
+                        borderColor: theme.palette.primary.dark }}/>
                     }
                   </>
                 ) : (
