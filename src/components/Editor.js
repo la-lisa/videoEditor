@@ -22,15 +22,15 @@ export default function Editor() {
   const canvasFormat = useStore(state => state.canvasFormat);
   const setCanvasFormat = useStore(state => state.setCanvasFormat);
   const setVideoUploaded = useStore(state => state.setVideoUploaded);
+  const setResultVideoURL = useStore(state => state.setResultVideoURL);
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
-  const [newUrl, setNewUrl] = useState(null);
+  const [videoFit, setVideoFit] = useState(VIDEO_FIT._CONTAIN);
   const [trimTime, setTrimTime] = useState(['00:00:02', '00:00:04']);
   const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [videoFit, setVideoFit] = useState('contain');
   const [bgColor, setBgColor] = useState('#000000');
   useEventListener("keydown", handleKeydown);
   const theme = useTheme();
@@ -74,8 +74,8 @@ export default function Editor() {
       );
     }
     const data = ffmpeg.FS('readFile', 'temp_2.mp4');
-    setNewUrl(URL.createObjectURL(new Blob([data.buffer], {type: 'image/gif'})));
-  }, [video, canvasFormat, videoFit, bgColor, trimTime]);
+    setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
+  }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, bgColor]);
 
   useEffect(() => {
     const load = async () => {
@@ -155,10 +155,6 @@ export default function Editor() {
                       />
                     </Stack>
                     <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
-                    { newUrl &&
-                      <video src={newUrl} style={{ border: theme.spacing(0.25),
-                        borderColor: theme.palette.primary.dark, borderStyle: 'dashed' }}/>
-                    }
                   </>
                 ) : (
                   <DropzoneContainer setVideo={setVideo}/>

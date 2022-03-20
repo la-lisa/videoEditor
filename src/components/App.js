@@ -2,11 +2,9 @@ import Editor from "./Editor.js"
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Container, CssBaseline, Stack } from "@mui/material";
 import Actions from "./Actions";
-import useStore from "../store/useStore";
+import Result from "./Result";
 
 function App() {
-  const videoUploaded = useStore(state => state.videoUploaded);
-
   const theme = createTheme({
     palette: {
       mode: "dark",
@@ -18,9 +16,12 @@ function App() {
       <CssBaseline/>
       <Container className="App" maxWidth="lg">
         <h1>ffmpeg.wasm video editor</h1>
-        <Stack direction="row" spacing={4}>
-          <Editor />
-          {videoUploaded && <Actions />}
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={4}>
+            <Editor />
+            <Actions />
+          </Stack>
+          <Result />
         </Stack>
       </Container>
     </ThemeProvider>
