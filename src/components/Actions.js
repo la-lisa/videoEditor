@@ -4,8 +4,11 @@ import { ExpandMore, AspectRatio, QuestionMark } from "@mui/icons-material";
 import styles from "./Actions.module.css";
 import ActionItem from "./ActionItem";
 import { CANVAS_FORMATS } from "../utils/utils";
+import useStore from "../store/useStore";
 
 export default function Actions() {
+  const canvasFormat = useStore(state => state.canvasFormat);
+  const setCanvasFormat = useStore(state => state.setCanvasFormat);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleActions = useCallback(() => {
@@ -21,7 +24,7 @@ export default function Actions() {
           <ActionItem Icon={() => <AspectRatio />} title="Canvas Size">
             {Object.values(CANVAS_FORMATS).map((format) => {
               return (
-                  <MenuItem key={format} onClick={() => {}}>
+                <MenuItem key={format} onClick={() => setCanvasFormat(format)} selected={canvasFormat === format}>
                   <Stack direction="row" spacing={1}>
                     <ListItemIcon>
                       <QuestionMark fontSize="small" />

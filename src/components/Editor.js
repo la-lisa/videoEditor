@@ -13,14 +13,17 @@ import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import { PauseCircle, PlayCircle } from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
+import useStore from "../store/useStore";
 
 const ffmpeg = createFFmpeg({ log: true });
 
 export default function Editor() {
+  const canvasFormat = useStore(state => state.canvasFormat);
+  const setCanvasFormat = useStore(state => state.setCanvasFormat);
+  const setVideoUploaded = useStore(state => state.setVideoUploaded);
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
   const [newUrl, setNewUrl] = useState(null);
-  const [canvasFormat, setCanvasFormat] = useState(null);
   const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -71,6 +74,12 @@ export default function Editor() {
       return URL.createObjectURL(video);
     }
   }, [video]);
+
+  // propagate change to store when video is uploaded/removed
+  useEffect(() => {
+    console.log(!!video);
+    setVideoUploaded(!!video);
+  }, [setVideoUploaded, video]);
 
   const handleScrub = (_, newValue) => {
     if (videoElemRef.current) {
