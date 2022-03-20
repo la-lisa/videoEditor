@@ -13,6 +13,8 @@ import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import {PauseCircle, PlayCircle} from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
+import { VIDEO_FIT } from "../utils/utils";
+
 
 const ffmpeg = createFFmpeg({log: true});
 
@@ -21,8 +23,9 @@ export default function Editor() {
     const [video, setVideo] = useState(null);
     const [newUrl, setNewUrl] = useState(null);
     const [canvasFormat, setCanvasFormat] = useState(null);
-    const [videoFit, setVideoFit] = useState('contain');
+    const [videoFit, setVideoFit] = useState(VIDEO_FIT._CONTAIN);
     const [bgColor, setBgColor] = useState('#000000');
+    const [trimTime, setTrimTime] = useState(['00:00:02', '00:00:04']);
     const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
     const [time, setTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -43,18 +46,26 @@ export default function Editor() {
 
     const writeFile = useCallback(async () => {
         await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
-        if (videoFit === "cover") {
+        if (videoFit === VIDEO_FIT._COVER) {
             await ffmpeg.run(
                 '-i',
                 'temp.mp4',
+                '-ss',
+                trimTime[0],
+                '-to',
+                trimTime[1],
                 '-vf',
                 'crop=ih*' + canvasFormat + ':ih',
                 'temp_2.mp4',
             );
-        } else if (videoFit === "contain") {
+        } else if (videoFit === VIDEO_FIT._CONTAIN) {
             await ffmpeg.run(
                 '-i',
                 'temp.mp4',
+                '-ss',
+                trimTime[0],
+                '-to',
+                trimTime[1],
                 '-vf',
                 'pad=width=max(iw\\,ih*('+ canvasFormat + ')):height=ow/('+ canvasFormat + '):x=(ow-iw)/2:y=(oh-ih)/2:color=' + bgColor + ',setsar=1',
                 'temp_2.mp4',
@@ -62,7 +73,7 @@ export default function Editor() {
         }
         const data = ffmpeg.FS('readFile', 'temp_2.mp4');
         setNewUrl(URL.createObjectURL(new Blob([data.buffer], {type: 'image/gif'})));
-    }, [video, canvasFormat, videoFit, bgColor]);
+    }, [video, canvasFormat, videoFit, bgColor, trimTime]);
 
     useEffect(() => {
         const load = async () => {
@@ -138,7 +149,7 @@ export default function Editor() {
                     <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
                     { newUrl &&
                       <video src={newUrl} style={{border: theme.spacing(0.25),
-                        borderColor: theme.palette.primary.dark}}/>
+                        borderColor: theme.palette.primary.dark, borderStyle: 'dashed'}}/>
                     }
                   </>
                 ) : (
