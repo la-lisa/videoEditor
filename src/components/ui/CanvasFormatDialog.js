@@ -6,17 +6,12 @@ import {
   FormControl,
   FormControlLabel,
   Grid,
-  RadioGroup
+  RadioGroup, Typography
 } from "@mui/material";
 import Radio from "@mui/material/Radio";
 import { useState } from "react";
-
-const CANVAS_FORMATS = {
-  _16_BY_9: '16/9',
-  _1_BY_1: '1/1',
-  _4_BY_3: '4/3',
-  _9_BY_16: '9/16',
-};
+import { CANVAS_FORMATS } from "../../utils/utils";
+import PropTypes from "prop-types";
 
 export default function CanvasFormatDialog({ onBack, onClose, open }) {
   const [chosenFormat, setChosenFormat] = useState(CANVAS_FORMATS._16_BY_9);
@@ -34,9 +29,11 @@ export default function CanvasFormatDialog({ onBack, onClose, open }) {
   }
 
   return (
-    <Dialog onClose={handleClose} open={open} aria-label="Choose Canvas Format Dialog" >
-      <DialogTitle>Choose Canvas Format</DialogTitle>
-      <Grid container className="canvas-formats" alignItems="center" justifyContent="center" spacing={1} >
+    <Dialog onClose={handleClose} open={open} aria-label="Choose Canvas Format Dialog">
+      <DialogTitle>
+        <Typography variant="h6" component="p" align="center">Choose Canvas Format</Typography>
+      </DialogTitle>
+      <Grid container className="canvas-formats" alignItems="center" justifyContent="center">
         <FormControl>
           <RadioGroup
             aria-label="Canvas Formats Radio Buttons"
@@ -57,7 +54,6 @@ export default function CanvasFormatDialog({ onBack, onClose, open }) {
             })}
           </RadioGroup>
         </FormControl>
-
       </Grid>
       <DialogActions sx={{ mt: 2 }}>
         <Button onClick={handleBack} variant="outlined">
@@ -69,4 +65,10 @@ export default function CanvasFormatDialog({ onBack, onClose, open }) {
       </DialogActions>
     </Dialog>
   );
+}
+
+CanvasFormatDialog.propTypes = {
+  onBack: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  open: PropTypes.bool.isRequired,
 }

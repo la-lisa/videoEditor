@@ -1,6 +1,14 @@
-import {createRef, useCallback, useEffect, useMemo, useState} from "react";
-import {createFFmpeg, fetchFile} from "@ffmpeg/ffmpeg";
-import {Box, Button, CircularProgress, Grid, Slider, Stack, useTheme} from "@mui/material";
+import { createRef, useCallback, useEffect, useMemo, useState } from "react";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Grid,
+  Slider,
+  Stack,
+  useTheme
+} from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import {PauseCircle, PlayCircle} from "@mui/icons-material";
@@ -103,62 +111,51 @@ export default function Editor() {
         }
     }
 
-    return (
-        <Grid container align="center" justifyContent="center" spacing={2}>
-            <Grid item align="center" xs={12} lg={8}>
-                {ffmpegReady ? (
-                    <Stack spacing={1}>
-                        {video && videoUrl && canvasFormat ? (
-                            <>
-                                <Box className="videoWrapper" style={{aspectRatio: canvasFormat}} sx={{
-                                    border: theme.spacing(0.25),
-                                    borderColor: theme.palette.primary.dark,
-                                    borderStyle: 'dashed',
-                                    maxHeight: '60vh',
-                                    bgcolor: bgColor,
-                                }}>
-                                    <video className="video"
-                                           style={{width: '100%', height: '100%', objectFit: videoFit}}
-                                           ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata}
-                                           onTimeUpdate={syncTimeToState}/>
-                                </Box>
-                                <Stack spacing={2} direction="row" sx={{mb: 1}} alignItems="center">
-                                    {/* Timeline */}
-                                    <Box onClick={togglePlaying} sx={{display: "flex", my: 1}}>
-                                        <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large"
-                                                       sx={{cursor: "pointer"}}/>
-                                    </Box>
-                                    <Slider
-                                        defaultValue={0}
-                                        value={time}
-                                        max={duration}
-                                        step={0.05}
-                                        onChange={handleScrub}
-                                        valueLabelDisplay="auto"
-                                    />
-                                </Stack>
-                                <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
-                                {newUrl &&
-                                <video src={newUrl} style={{border: theme.spacing(0.25),
-                                    borderColor: theme.palette.primary.dark,
-                                    borderStyle: 'dashed',}}/>
-                                }
-                            </>
-                        ) : (
-                            <DropzoneContainer setVideo={setVideo}/>
-                        )
-                        }
+  return (
+    <Grid container align="center" justifyContent="center" spacing={2}>
+      <Grid item align="center" xs={12} lg={8}>
+        {ffmpegReady ? (
+            <Stack spacing={1}>
+              {video && videoUrl && canvasFormat ? (
+                  <>
+                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', bgcolor: bgColor, }}>
+                      <video className="video" style={{ width: '100%', height: '100%', objectFit: videoFit }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
+                    </Box>
+                    <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+                      {/* Timeline */}
+                      <Box onClick={togglePlaying} sx={{ display: "flex", my: 1 }}>
+                        <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large" sx={{ cursor: "pointer" }} />
+                      </Box>
+                      <Slider
+                        defaultValue={0}
+                        value={time}
+                        max={duration}
+                        step={0.05}
+                        onChange={handleScrub}
+                        valueLabelDisplay="auto"
+                      />
                     </Stack>
+                    <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
+                    { newUrl &&
+                      <video src={newUrl} style={{border: theme.spacing(0.25),
+                        borderColor: theme.palette.primary.dark}}/>
+                    }
+                  </>
                 ) : (
-                    <CircularProgress/>
+                  <DropzoneContainer setVideo={setVideo}/>
                 )
-                }
-            </Grid>
-            <CanvasFormatDialog
-                open={isCanvasFormatDialogShown}
-                onBack={handleCanvasFormatDialogBack}
-                onClose={handleCanvasFormatDialogClose}
-            />
-        </Grid>
-    );
+              }
+            </Stack>
+          ) : (
+            <CircularProgress/>
+          )
+        }
+      </Grid>
+      <CanvasFormatDialog
+        open={isCanvasFormatDialogShown}
+        onBack={handleCanvasFormatDialogBack}
+        onClose={handleCanvasFormatDialogClose}
+      />
+    </Grid>
+  );
 }
