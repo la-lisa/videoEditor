@@ -1,10 +1,12 @@
-import { Box, ListItemIcon, ListItemText, MenuItem, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { Box, ListItemIcon, ListItemText, MenuItem, Paper, Stack, Typography, TextField, useTheme } from "@mui/material";
 import { useCallback, useState } from "react";
-import { ExpandMore, AspectRatio, QuestionMark } from "@mui/icons-material";
+import { ExpandMore, AspectRatio, QuestionMark, FitScreen, AvTimer, ColorLens } from "@mui/icons-material";
 import styles from "./Actions.module.css";
 import ActionItem from "./ActionItem";
 import { CANVAS_FORMATS } from "../utils/utils";
 import useStore from "../store/useStore";
+import { VIDEO_FIT } from "../utils/utils";
+import { ChromePicker } from "react-color";
 
 export default function Actions() {
   const canvasFormat = useStore(state => state.canvasFormat);
@@ -34,6 +36,35 @@ export default function Actions() {
                 </MenuItem>
               )
             })}
+          </ActionItem>
+          <ActionItem Icon={() => <FitScreen />} title="Video Fit">
+            {Object.values(VIDEO_FIT).map((format) => {
+              return (
+                <MenuItem key={format} onClick={() => {}}>
+                  <Stack direction="row" spacing={1}>
+                    <ListItemIcon>
+                      <QuestionMark fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>{format}</ListItemText>
+                  </Stack>
+                </MenuItem>
+              )
+            })}
+          </ActionItem>
+          <ActionItem Icon={() => <AvTimer />} title="Trim Video">
+            <TextField id="start" label="Starting Time" variant="outlined" />
+            <TextField id="end" label="End Time" variant="outlined" />
+            {/*For time picking later*/}
+            {/*<Slider*/}
+            {/*    getAriaLabel={() => 'Trim video'}*/}
+            {/*    value={[20, 37]}*/}
+            {/*    //onChange={handleChange}*/}
+            {/*    valueLabelDisplay="auto"*/}
+            {/*   // getAriaValueText={valuetext}*/}
+            {/*/>*/}
+          </ActionItem>
+          <ActionItem Icon={() => <ColorLens />} title="Video Background Color">
+            <ChromePicker disableAlpha={true} />
           </ActionItem>
         </Stack>
         <Box sx={{ writingMode: 'tb', cursor: 'pointer' }} onClick={toggleActions}>

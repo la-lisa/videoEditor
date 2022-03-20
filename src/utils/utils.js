@@ -4,3 +4,8 @@ export const CANVAS_FORMATS = {
   _4_BY_3: '4/3',
   _9_BY_16: '9/16',
 };
+
+export const VIDEO_FIT = {
+  _CONTAIN : 'contain',
+  _COVER : 'cover'
+}
