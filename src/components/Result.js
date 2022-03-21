@@ -8,8 +8,8 @@ export default function Result() {
   return (
     <>
       { url &&
-      <video src={url} style={{ border: theme.spacing(0.25),
-        borderColor: theme.palette.primary.dark, borderStyle: 'dashed' }}/>
+        <video src={url} style={{ border: theme.spacing(0.25),
+          borderColor: theme.palette.primary.dark, borderStyle: 'dashed' }} />
       }
     </>
   )

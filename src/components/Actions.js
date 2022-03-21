@@ -12,6 +12,7 @@ export default function Actions() {
   const canvasFormat = useStore(state => state.canvasFormat);
   const setCanvasFormat = useStore(state => state.setCanvasFormat);
   const videoUploaded = useStore(state => state.videoUploaded);
+  const setVideoFit = useStore(state => state.setVideoFit);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleActions = useCallback(() => {
@@ -41,14 +42,14 @@ export default function Actions() {
                 })}
               </ActionItem>
               <ActionItem Icon={() => <FitScreen />} title="Video Fit">
-                {Object.values(VIDEO_FIT).map((format) => {
+                {Object.values(VIDEO_FIT).map((videoFit) => {
                   return (
-                    <MenuItem key={format} onClick={() => {}}>
+                    <MenuItem key={videoFit} onClick={() => setVideoFit(videoFit)}>
                       <Stack direction="row" spacing={1}>
                         <ListItemIcon>
                           <QuestionMark fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>{format}</ListItemText>
+                        <ListItemText>{videoFit}</ListItemText>
                       </Stack>
                     </MenuItem>
                   )

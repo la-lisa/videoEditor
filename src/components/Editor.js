@@ -23,9 +23,9 @@ export default function Editor() {
   const setCanvasFormat = useStore(state => state.setCanvasFormat);
   const setVideoUploaded = useStore(state => state.setVideoUploaded);
   const setResultVideoURL = useStore(state => state.setResultVideoURL);
+  const videoFit = useStore(state => state.videoFit);
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
-  const [videoFit, setVideoFit] = useState(VIDEO_FIT._CONTAIN);
   const [trimTime, setTrimTime] = useState(['00:00:02', '00:00:04']);
   const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
   const [time, setTime] = useState(0);
@@ -48,31 +48,22 @@ export default function Editor() {
 
   const writeFile = useCallback(async () => {
     await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
-    if (videoFit === "cover") {
-      await ffmpeg.run(
-        '-i',
-        'temp.mp4',
-        '-ss',
-        trimTime[0],
-        '-to',
-        trimTime[1],
-        '-vf',
-        'crop=ih*' + canvasFormat + ':ih',
-        'temp_2.mp4',
-      );
-    } else if (videoFit === "contain") {
-      await ffmpeg.run(
-        '-i',
-        'temp.mp4',
-        '-ss',
-        trimTime[0],
-        '-to',
-        trimTime[1],
-        '-vf',
-        'pad=width=max(iw\\,ih*('+ canvasFormat + ')):height=ow/('+ canvasFormat + '):x=(ow-iw)/2:y=(oh-ih)/2:color=' + bgColor + ',setsar=1',
-        'temp_2.mp4',
-      );
-    }
+
+    const vfOptions = videoFit === VIDEO_FIT._COVER
+      ? `crop=ih*${canvasFormat}:ih`
+      : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${bgColor},setsar=1`
+    await ffmpeg.run(
+      '-i',
+      'temp.mp4',
+      '-ss',
+      trimTime[0],
+      '-to',
+      trimTime[1],
+      '-vf',
+      vfOptions,
+      'temp_2.mp4',
+    );
+
     const data = ffmpeg.FS('readFile', 'temp_2.mp4');
     setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
   }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, bgColor]);
