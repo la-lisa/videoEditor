@@ -1,167 +1,181 @@
-import { createRef, useCallback, useEffect, useMemo, useState } from "react";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import {createRef, useCallback, useEffect, useMemo, useState} from "react";
+import {createFFmpeg, fetchFile} from "@ffmpeg/ffmpeg";
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Grid,
-  Slider,
-  Stack,
-  useTheme
+    Box,
+    Button,
+    CircularProgress,
+    Grid,
+    Slider,
+    Stack,
+    useTheme
 } from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
 import CanvasFormatDialog from "./ui/CanvasFormatDialog";
-import { PauseCircle, PlayCircle } from "@mui/icons-material";
+import {PauseCircle, PlayCircle} from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
 import useStore from "../store/useStore";
-import { VIDEO_FIT } from "../utils/utils";
+import {VIDEO_FIT} from "../utils/utils";
 
-const ffmpeg = createFFmpeg({ log: true });
+const ffmpeg = createFFmpeg({log: true});
 
 export default function Editor() {
-  const canvasFormat = useStore(state => state.canvasFormat);
-  const setCanvasFormat = useStore(state => state.setCanvasFormat);
-  const setVideoUploaded = useStore(state => state.setVideoUploaded);
-  const setResultVideoURL = useStore(state => state.setResultVideoURL);
-  const videoFit = useStore(state => state.videoFit);
-  const [ffmpegReady, setFfmpegReady] = useState(false);
-  const [video, setVideo] = useState(null);
-  const [trimTime, setTrimTime] = useState(['00:00:02', '00:00:04']);
-  const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
-  const [time, setTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [bgColor, setBgColor] = useState('#000000');
-  useEventListener("keydown", handleKeydown);
-  const theme = useTheme();
+    const canvasFormat = useStore(state => state.canvasFormat);
+    const setCanvasFormat = useStore(state => state.setCanvasFormat);
+    const setVideoUploaded = useStore(state => state.setVideoUploaded);
+    const setResultVideoURL = useStore(state => state.setResultVideoURL);
+    const videoFit = useStore(state => state.videoFit);
+    const trimTime = useStore(state => state.trimTime);
+    const videoBgColor = useStore(state => state.videoBgColor)
+    const [ffmpegReady, setFfmpegReady] = useState(false);
+    const [video, setVideo] = useState(null);
+    const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
+    const [time, setTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [playing, setPlaying] = useState(false);
 
-  const videoElemRef = createRef();
+    useEventListener("keydown", handleKeydown);
+    const theme = useTheme();
 
-  const handleCanvasFormatDialogBack = () => {
-    setIsCanvasFormatDialogShown(false);
-  }
+    const videoElemRef = createRef();
 
-  const handleCanvasFormatDialogClose = (value) => {
-    setIsCanvasFormatDialogShown(false);
-    setCanvasFormat(value);
-  };
-
-  const writeFile = useCallback(async () => {
-    await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
-
-    const vfOptions = videoFit === VIDEO_FIT._COVER
-      ? `crop=ih*${canvasFormat}:ih`
-      : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${bgColor},setsar=1`
-    await ffmpeg.run(
-      '-i',
-      'temp.mp4',
-      '-ss',
-      trimTime[0],
-      '-to',
-      trimTime[1],
-      '-vf',
-      vfOptions,
-      'temp_2.mp4',
-    );
-
-    const data = ffmpeg.FS('readFile', 'temp_2.mp4');
-    setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
-  }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, bgColor]);
-
-  useEffect(() => {
-    const load = async () => {
-      await ffmpeg.load();
-      setFfmpegReady(true);
+    const handleCanvasFormatDialogBack = () => {
+        setIsCanvasFormatDialogShown(false);
     }
-    load();
-  }, []);
 
-  useEffect(() => {
-    video && !canvasFormat && setIsCanvasFormatDialogShown(true);
-  }, [canvasFormat, video]);
+    const handleCanvasFormatDialogClose = (value) => {
+        setIsCanvasFormatDialogShown(false);
+        setCanvasFormat(value);
+    };
 
-  const videoUrl = useMemo(() => {
-    if (video) {
-      return URL.createObjectURL(video);
-    }
-  }, [video]);
+    const writeFile = useCallback(async () => {
+        await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
 
-  // propagate change to store when video is uploaded/removed
-  useEffect(() => {
-    console.log(!!video);
-    setVideoUploaded(!!video);
-  }, [setVideoUploaded, video]);
+        const vfOptions = videoFit === VIDEO_FIT._COVER
+            ? `crop=ih*${canvasFormat}:ih`
+            : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1`
+        await ffmpeg.run(
+            '-ss',
+            trimTime[0],
+            '-i',
+            'temp.mp4',
+            '-to',
+            trimTime[1],
+            '-copyts',
+            '-vf',
+            vfOptions,
+            'temp_2.mp4',
+        );
 
-  const handleScrub = (_, newValue) => {
-    if (videoElemRef.current) {
-      videoElemRef.current.currentTime = newValue;
-    }
-  }
+        const data = ffmpeg.FS('readFile', 'temp_2.mp4');
+        setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], {type: 'image/gif'})));
+    }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, videoBgColor]);
 
-  const PlayPauseIcon = useMemo(() => {
-    return playing ? PauseCircle : PlayCircle;
-  }, [playing]);
-
-  const syncTimeToState = useCallback(() => {
-    setTime(videoElemRef.current?.currentTime);
-  }, [videoElemRef, setTime]);
-
-  const handleMetadata = (e) => {
-    setDuration(e.target.duration);
-  }
-
-  const togglePlaying = () => {
-    videoElemRef.current?.paused ? videoElemRef.current?.play() : videoElemRef.current?.pause();
-    setPlaying(oldValue => !oldValue);
-  }
-
-  function handleKeydown(e) {
-    if (e.keyCode === 32) { // space
-      togglePlaying();
-    }
-  }
-
-  return (
-    <Grid container align="center" justifyContent="center" spacing={2}>
-      <Grid item align="center" xs={12} lg={8}>
-        {ffmpegReady ? (
-            <Stack spacing={1}>
-              {video && videoUrl && canvasFormat ? (
-                  <>
-                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', bgcolor: bgColor, }}>
-                      <video className="video" style={{ width: '100%', height: '100%', objectFit: videoFit }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
-                    </Box>
-                    <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
-                      {/* Timeline */}
-                      <Box onClick={togglePlaying} sx={{ display: "flex", my: 1 }}>
-                        <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large" sx={{ cursor: "pointer" }} />
-                      </Box>
-                      <Slider
-                        defaultValue={0}
-                        value={time}
-                        max={duration}
-                        step={0.05}
-                        onChange={handleScrub}
-                        valueLabelDisplay="auto"
-                      />
-                    </Stack>
-                    <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
-                  </>
-                ) : (
-                  <DropzoneContainer setVideo={setVideo}/>
-                )
-              }
-            </Stack>
-          ) : (
-            <CircularProgress/>
-          )
+    useEffect(() => {
+        const load = async () => {
+            await ffmpeg.load();
+            setFfmpegReady(true);
         }
-      </Grid>
-      <CanvasFormatDialog
-        open={isCanvasFormatDialogShown}
-        onBack={handleCanvasFormatDialogBack}
-        onClose={handleCanvasFormatDialogClose}
-      />
-    </Grid>
-  );
+        load();
+    }, []);
+
+    useEffect(() => {
+        video && !canvasFormat && setIsCanvasFormatDialogShown(true);
+    }, [canvasFormat, video]);
+
+    const videoUrl = useMemo(() => {
+        if (video) {
+            return URL.createObjectURL(video);
+        }
+    }, [video]);
+
+    // propagate change to store when video is uploaded/removed
+    useEffect(() => {
+        console.log(!!video);
+        setVideoUploaded(!!video);
+    }, [setVideoUploaded, video]);
+
+    const handleScrub = (_, newValue) => {
+        if (videoElemRef.current) {
+            videoElemRef.current.currentTime = newValue;
+        }
+    }
+
+    const PlayPauseIcon = useMemo(() => {
+        return playing ? PauseCircle : PlayCircle;
+    }, [playing]);
+
+    const syncTimeToState = useCallback(() => {
+        setTime(videoElemRef.current?.currentTime);
+    }, [videoElemRef, setTime]);
+
+    const handleMetadata = (e) => {
+        setDuration(e.target.duration);
+    }
+
+    const togglePlaying = () => {
+        videoElemRef.current?.paused ? videoElemRef.current?.play() : videoElemRef.current?.pause();
+        setPlaying(oldValue => !oldValue);
+    }
+
+    function handleKeydown(e) {
+        if (e.keyCode === 32) { // space
+            togglePlaying();
+        }
+    }
+
+    return (
+        <Grid container align="center" justifyContent="center" spacing={2}>
+            <Grid item align="center" xs={12} lg={8}>
+                {ffmpegReady ? (
+                    <Stack spacing={1}>
+                        {video && videoUrl && canvasFormat ? (
+                            <>
+                                <Box className="videoWrapper" style={{aspectRatio: canvasFormat}} sx={{
+                                    alignSelf: 'center',
+                                    height: '60vh',
+                                    maxWidth: '100%',
+                                    border: theme.spacing(0.25),
+                                    borderColor: theme.palette.primary.dark,
+                                    borderStyle: 'dashed',
+                                    bgcolor: videoBgColor,
+                                }}>
+                                    <video className="video"
+                                           style={{width: '100%', height: '100%', objectFit: videoFit}}
+                                           ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata}
+                                           onTimeUpdate={syncTimeToState}/>
+                                </Box>
+                                <Stack spacing={2} direction="row" sx={{mb: 1}} alignItems="center">
+                                    {/* Timeline */}
+                                    <Box onClick={togglePlaying} sx={{display: "flex", my: 1}}>
+                                        <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large"
+                                                       sx={{cursor: "pointer"}}/>
+                                    </Box>
+                                    <Slider
+                                        defaultValue={0}
+                                        value={time}
+                                        max={duration}
+                                        step={0.05}
+                                        onChange={handleScrub}
+                                        valueLabelDisplay="auto"
+                                    />
+                                </Stack>
+                                <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
+                            </>
+                        ) : (
+                            <DropzoneContainer setVideo={setVideo}/>
+                        )
+                        }
+                    </Stack>
+                ) : (
+                    <CircularProgress/>
+                )
+                }
+            </Grid>
+            <CanvasFormatDialog
+                open={isCanvasFormatDialogShown}
+                onBack={handleCanvasFormatDialogBack}
+                onClose={handleCanvasFormatDialogClose}
+            />
+        </Grid>
+    );
 }

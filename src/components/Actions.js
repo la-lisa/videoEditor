@@ -13,6 +13,10 @@ export default function Actions() {
   const setCanvasFormat = useStore(state => state.setCanvasFormat);
   const videoUploaded = useStore(state => state.videoUploaded);
   const setVideoFit = useStore(state => state.setVideoFit);
+  const videoBgColor = useStore(state=>state.videoBgColor);
+  const setVideoBgColor = useStore(state=>state.setVideoBgColor);
+  const trimTime = useStore(state=>state.trimTime);
+  const setTrimTime = useStore(state=>state.setTrimTime);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleActions = useCallback(() => {
@@ -20,6 +24,10 @@ export default function Actions() {
   }, [setIsOpen]);
 
   const theme = useTheme();
+
+  const handleColor = (color) => {
+    //setVideoBgColor({videoBgColor: color.hex});
+  }
 
   return (
     <>
@@ -56,8 +64,8 @@ export default function Actions() {
                 })}
               </ActionItem>
               <ActionItem Icon={() => <AvTimer />} title="Trim Video">
-                <TextField id="start" label="Starting Time" variant="outlined" />
-                <TextField id="end" label="End Time" variant="outlined" />
+                <TextField id="start" label="Starting Time" variant="outlined" value={trimTime[0]} />
+                <TextField id="end" label="End Time" variant="outlined" value={trimTime[1]}/>
                 {/*For time picking later*/}
                 {/*<Slider*/}
                 {/*    getAriaLabel={() => 'Trim video'}*/}
@@ -68,7 +76,7 @@ export default function Actions() {
                 {/*/>*/}
               </ActionItem>
               <ActionItem Icon={() => <ColorLens />} title="Video Background Color">
-                <ChromePicker disableAlpha={true} />
+                <ChromePicker disableAlpha={true} color={ videoBgColor } onChange={handleColor} />
               </ActionItem>
             </Stack>
             <Box sx={{ writingMode: 'tb', cursor: 'pointer' }} onClick={toggleActions}>
