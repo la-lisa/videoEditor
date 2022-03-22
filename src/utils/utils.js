@@ -9,3 +9,6 @@ export const VIDEO_FIT = {
   _CONTAIN : 'contain',
   _COVER : 'cover'
 }
+
+export const DIALOG_CANCEL_BUTTON_TITLE = 'cancel';
+export const DIALOG_OK_BUTTON_TITLE = 'ok';

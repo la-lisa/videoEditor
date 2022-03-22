@@ -3,6 +3,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Container, CssBaseline, Stack } from "@mui/material";
 import Actions from "./Actions";
 import Result from "./Result";
+import ModalDialog from "./ui/dialogs/ModalDialog";
 
 function App() {
   const theme = createTheme({
@@ -23,6 +24,7 @@ function App() {
           </Stack>
           <Result />
         </Stack>
+        <ModalDialog />
       </Container>
     </ThemeProvider>
   );

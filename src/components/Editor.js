@@ -10,24 +10,28 @@ import {
   useTheme
 } from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
-import CanvasFormatDialog from "./ui/CanvasFormatDialog";
+import CanvasFormatDialog from "./ui/dialogs/CanvasFormatDialog";
 import { PauseCircle, PlayCircle } from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
 import useStore from "../store/useStore";
-import { VIDEO_FIT } from "../utils/utils";
+import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_FIT } from "../utils/utils";
+import VideoProgressDialog from "./ui/dialogs/VideoProgressDialog";
 
 const ffmpeg = createFFmpeg({ log: true });
 
 export default function Editor() {
   const canvasFormat = useStore(state => state.canvasFormat);
-  const setCanvasFormat = useStore(state => state.setCanvasFormat);
+  const canvasFormatChosen = useStore(state => state.canvasFormatChosen);
+  const setCanvasFormatChosen = useStore(state => state.setCanvasFormatChosen);
   const setVideoUploaded = useStore(state => state.setVideoUploaded);
   const setResultVideoURL = useStore(state => state.setResultVideoURL);
   const videoFit = useStore(state => state.videoFit);
+  const setResultVideoProgress = useStore(state => state.setResultVideoProgress);
+  const openDialog = useStore(state => state.openDialog);
+  const closeDialog = useStore(state => state.closeDialog);
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
-  const [trimTime, setTrimTime] = useState(['00:00:02', '00:00:04']);
-  const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
+  const [trimTime, setTrimTime] = useState(null);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -37,16 +41,22 @@ export default function Editor() {
 
   const videoElemRef = createRef();
 
-  const handleCanvasFormatDialogBack = () => {
-    setIsCanvasFormatDialogShown(false);
-  }
-
-  const handleCanvasFormatDialogClose = (value) => {
-    setIsCanvasFormatDialogShown(false);
-    setCanvasFormat(value);
+  const handleCanvasFormatDialogAction = (value) => {
+    setCanvasFormatChosen(true);
+    closeDialog();
   };
 
+  const handleVideoProgressDialogCancel = () => {
+    // TODO figure out how to cancel running task
+    closeDialog();
+  }
+
   const writeFile = useCallback(async () => {
+    openDialog(() => <VideoProgressDialog />, {
+      title: 'Rendering...',
+      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+    });
+
     await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
 
     const vfOptions = videoFit === VIDEO_FIT._COVER
@@ -55,10 +65,14 @@ export default function Editor() {
     await ffmpeg.run(
       '-i',
       'temp.mp4',
-      '-ss',
-      trimTime[0],
-      '-to',
-      trimTime[1],
+      ...(trimTime?.[0] && trimTime?.[1] ?
+        [
+          '-ss',
+          trimTime[0],
+          '-to',
+          trimTime[1]
+        ] : []
+      ),
       '-vf',
       vfOptions,
       'temp_2.mp4',
@@ -66,10 +80,12 @@ export default function Editor() {
 
     const data = ffmpeg.FS('readFile', 'temp_2.mp4');
     setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
-  }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, bgColor]);
+    closeDialog();
+  }, [video, videoFit, trimTime, canvasFormat, bgColor]);
 
   useEffect(() => {
     const load = async () => {
+      ffmpeg.setProgress((progress) => setResultVideoProgress(progress));
       await ffmpeg.load();
       setFfmpegReady(true);
     }
@@ -77,7 +93,11 @@ export default function Editor() {
   }, []);
 
   useEffect(() => {
-    video && !canvasFormat && setIsCanvasFormatDialogShown(true);
+    video && !canvasFormat && openDialog(() => <CanvasFormatDialog />, {
+      title: 'Choose Canvas Format',
+      actionButton: { title: DIALOG_OK_BUTTON_TITLE, onClick: handleCanvasFormatDialogAction },
+      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: closeDialog },
+    });
   }, [canvasFormat, video]);
 
   const videoUrl = useMemo(() => {
@@ -88,7 +108,6 @@ export default function Editor() {
 
   // propagate change to store when video is uploaded/removed
   useEffect(() => {
-    console.log(!!video);
     setVideoUploaded(!!video);
   }, [setVideoUploaded, video]);
 
@@ -121,12 +140,16 @@ export default function Editor() {
     }
   }
 
+  const showVideo = useMemo(() => {
+    return video && videoUrl && canvasFormat && canvasFormatChosen;
+  }, [canvasFormat, canvasFormatChosen, video, videoUrl]);
+
   return (
     <Grid container align="center" justifyContent="center" spacing={2}>
       <Grid item align="center" xs={12} lg={8}>
         {ffmpegReady ? (
             <Stack spacing={1}>
-              {video && videoUrl && canvasFormat ? (
+              {showVideo ? (
                   <>
                     <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', bgcolor: bgColor, }}>
                       <video className="video" style={{ width: '100%', height: '100%', objectFit: videoFit }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
@@ -145,7 +168,7 @@ export default function Editor() {
                         valueLabelDisplay="auto"
                       />
                     </Stack>
-                    <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
+                    <Button variant="contained" onClick={writeFile}>Render</Button>
                   </>
                 ) : (
                   <DropzoneContainer setVideo={setVideo}/>
@@ -157,11 +180,6 @@ export default function Editor() {
           )
         }
       </Grid>
-      <CanvasFormatDialog
-        open={isCanvasFormatDialogShown}
-        onBack={handleCanvasFormatDialogBack}
-        onClose={handleCanvasFormatDialogClose}
-      />
     </Grid>
   );
 }
