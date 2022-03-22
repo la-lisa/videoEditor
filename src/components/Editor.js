@@ -26,22 +26,23 @@ export default function Editor() {
   const setVideoUploaded = useStore(state => state.setVideoUploaded);
   const setResultVideoURL = useStore(state => state.setResultVideoURL);
   const videoFit = useStore(state => state.videoFit);
+  const trimTime = useStore(state => state.trimTime);
+  const videoBgColor = useStore(state => state.videoBgColor);
   const setResultVideoProgress = useStore(state => state.setResultVideoProgress);
   const openDialog = useStore(state => state.openDialog);
   const closeDialog = useStore(state => state.closeDialog);
+
   const [ffmpegReady, setFfmpegReady] = useState(false);
   const [video, setVideo] = useState(null);
-  const [trimTime, setTrimTime] = useState(null);
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [bgColor, setBgColor] = useState('#000000');
+
   useEventListener("keydown", handleKeydown);
   const theme = useTheme();
-
   const videoElemRef = createRef();
 
-  const handleCanvasFormatDialogAction = (value) => {
+  const handleCanvasFormatDialogAction = () => {
     setCanvasFormatChosen(true);
     closeDialog();
   };
@@ -61,16 +62,22 @@ export default function Editor() {
 
     const vfOptions = videoFit === VIDEO_FIT._COVER
       ? `crop=ih*${canvasFormat}:ih`
-      : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${bgColor},setsar=1`
+      : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1`
+    const useTrimTime = trimTime?.[0] && trimTime?.[1];
     await ffmpeg.run(
-      '-i',
-      'temp.mp4',
-      ...(trimTime?.[0] && trimTime?.[1] ?
+      ...(useTrimTime ?
         [
           '-ss',
           trimTime[0],
+        ] : []
+      ),
+      '-i',
+      'temp.mp4',
+      ...(useTrimTime ?
+        [
           '-to',
-          trimTime[1]
+          trimTime[1],
+          '-copyts',
         ] : []
       ),
       '-vf',
@@ -81,7 +88,7 @@ export default function Editor() {
     const data = ffmpeg.FS('readFile', 'temp_2.mp4');
     setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' })));
     closeDialog();
-  }, [video, videoFit, trimTime, canvasFormat, bgColor]);
+  }, [video, videoFit, trimTime, canvasFormat, videoBgColor]);
 
   useEffect(() => {
     const load = async () => {
@@ -121,9 +128,9 @@ export default function Editor() {
     return playing ? PauseCircle : PlayCircle;
   }, [playing]);
 
-  const syncTimeToState = useCallback(() => {
-    setTime(videoElemRef.current?.currentTime);
-  }, [videoElemRef, setTime]);
+    const syncTimeToState = useCallback(() => {
+        setTime(videoElemRef.current?.currentTime);
+    }, [videoElemRef, setTime]);
 
   const handleMetadata = (e) => {
     setDuration(e.target.duration);
@@ -151,8 +158,27 @@ export default function Editor() {
             <Stack spacing={1}>
               {showVideo ? (
                   <>
-                    <Box className="videoWrapper" style={{ aspectRatio: canvasFormat }} sx={{ alignSelf: 'center',  height: '60vh', maxWidth: '100%', border: theme.spacing(0.25), borderColor: theme.palette.primary.dark, borderStyle: 'dashed', bgcolor: bgColor, }}>
-                      <video className="video" style={{ width: '100%', height: '100%', objectFit: videoFit }} ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata} onTimeUpdate={syncTimeToState} />
+                    <Box
+                      className="videoWrapper"
+                      style={{ aspectRatio: canvasFormat }}
+                      sx={{
+                        alignSelf: 'center',
+                        height: '60vh',
+                        maxWidth: '100%',
+                        border: theme.spacing(0.25),
+                        borderColor: theme.palette.primary.dark,
+                        borderStyle: 'dashed',
+                        bgcolor: videoBgColor,
+                      }}
+                    >
+                      <video
+                        className="video"
+                        style={{ width: '100%', height: '100%', objectFit: videoFit }}
+                        ref={videoElemRef}
+                        src={videoUrl}
+                        onLoadedMetadata={handleMetadata}
+                        onTimeUpdate={syncTimeToState}
+                      />
                     </Box>
                     <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
                       {/* Timeline */}
