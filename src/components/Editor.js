@@ -39,6 +39,7 @@ export default function Editor() {
   const [playing, setPlaying] = useState(false);
 
   useEventListener("keydown", handleKeydown);
+  useEventListener("beforeunload", handleBeforeUnload);
   const theme = useTheme();
   const videoElemRef = createRef();
 
@@ -145,6 +146,11 @@ export default function Editor() {
     if (e.keyCode === 32) { // space
       togglePlaying();
     }
+  }
+
+  function handleBeforeUnload(e) {
+    e.preventDefault();
+    e.returnValue = '';
   }
 
   const showVideo = useMemo(() => {
