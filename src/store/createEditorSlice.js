@@ -11,7 +11,11 @@ const createEditorSlice = (set, get) => ({
   trimTime: ['00:00:00', '00:00:04'],
   setTrimTime: (trimTime) => set({trimTime: trimTime}),
   videoBgColor: '#000000',
-  setVideoBgColor: (videoBgColor) => set({videoBgColor: videoBgColor})
+  setVideoBgColor: (videoBgColor) => set({videoBgColor: videoBgColor}),
+  editorActions: [],
+  // TODO: implement undo/redo
+  canUndo: false,
+  canRedo: false,
 });
 
 export default createEditorSlice;
