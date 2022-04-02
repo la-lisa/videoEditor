@@ -13,8 +13,11 @@ import {
 import { ReactComponent as Logo } from "../../../assets/logo.svg";
 import UndoRedoButtons from "./UndoRedoButtons";
 import { createTheme } from "@mui/material/styles";
+import useStore from "../../../store/useStore";
 
 export default function CustomAppBar() {
+  const showButtons = useStore(state => state.canvasFormatChosen);
+
   const createButtonTheme = (theme) => createTheme({
     ...theme,
     palette: {
@@ -44,12 +47,14 @@ export default function CustomAppBar() {
                 ezvideo
               </Typography>
             </Stack>
-            <ThemeProvider theme={(theme) => createButtonTheme(theme)}>
-              <UndoRedoButtons />
-              <Button disabled>
-                render
-              </Button>
-            </ThemeProvider>
+            {showButtons && (
+              <ThemeProvider theme={(theme) => createButtonTheme(theme)}>
+                <UndoRedoButtons />
+                <Button disabled>
+                  render
+                </Button>
+              </ThemeProvider>
+            )}
           </Stack>
         </Toolbar>
       </AppBar>
