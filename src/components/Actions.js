@@ -1,6 +1,18 @@
 import { Box, ListItemIcon, ListItemText, MenuItem, Paper, Stack, Typography, TextField, useTheme } from "@mui/material";
 import { useCallback, useState } from "react";
-import { ExpandMore, AspectRatio, QuestionMark, FitScreen, AvTimer, ColorLens } from "@mui/icons-material";
+import {
+  AlignHorizontalCenter,
+  AspectRatio,
+  AvTimer,
+  ColorLens,
+  Contrast,
+  ExpandMore,
+  FitScreen,
+  QuestionMark,
+  VolumeOff,
+  VolumeUp,
+  ZoomIn
+} from "@mui/icons-material";
 import styles from "./Actions.module.css";
 import ActionItem from "./ActionItem";
 import { CANVAS_FORMATS } from "../utils/utils";
@@ -34,8 +46,8 @@ export default function Actions() {
       { videoUploaded && (
         <Paper elevation={1}>
           <Stack direction="row" sx={{ justifyContent: 'flex-end', height: '100%', width: '100%' }}>
-            <Stack spacing={2} className={`${styles.actionsPanel} ${isOpen ? `${styles.open}` : `${styles.collapsed}`}`} sx={isOpen ? { padding: 3 } : {}}>
-              <ActionItem Icon={() => <AspectRatio />} title="Canvas Size">
+            <Stack spacing={2} className={`${styles.actionsPanel} ${isOpen ? `${styles.open}` : `${styles.collapsed}`}`} sx={isOpen ? { padding: 2 } : {}}>
+              <ActionItem Icon={() => <AspectRatio />} title="Aspect Ratio">
                 {Object.values(CANVAS_FORMATS).map((format) => {
                   return (
                     <MenuItem key={format} onClick={() => setCanvasFormat(format)} selected={canvasFormat === format}>
@@ -63,7 +75,7 @@ export default function Actions() {
                   )
                 })}
               </ActionItem>
-              <ActionItem Icon={() => <AvTimer />} title="Trim Video">
+              <ActionItem Icon={() => <AvTimer />} title="Trim">
                 <TextField id="start" label="Starting Time" variant="outlined" value={trimTime[0]} />
                 <TextField id="end" label="End Time" variant="outlined" value={trimTime[1]}/>
                 {/*For time picking later*/}
@@ -75,9 +87,14 @@ export default function Actions() {
                 {/*   // getAriaValueText={valuetext}*/}
                 {/*/>*/}
               </ActionItem>
-              <ActionItem Icon={() => <ColorLens />} title="Video Background Color">
+              <ActionItem Icon={() => <AlignHorizontalCenter />} title="Alignment" />
+              <ActionItem Icon={() => <ZoomIn />} title="Zoom" />
+              <ActionItem Icon={() => <Contrast />} title="Adjustments" />
+              <ActionItem Icon={() => <ColorLens />} title="Background">
                 <ChromePicker disableAlpha={true} color={ videoBgColor } onChange={handleColor} />
               </ActionItem>
+              <ActionItem Icon={() => <VolumeUp />} title="Volume" />
+              <ActionItem Icon={() => <VolumeOff />} title="Mute" />
             </Stack>
             <Box sx={{ writingMode: 'tb', cursor: 'pointer' }} onClick={toggleActions}>
               <Stack direction="row" sx={{ padding: 1 }}>
