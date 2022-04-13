@@ -1,5 +1,4 @@
 import {createRef, useCallback, useEffect, useMemo, useState} from "react";
-import {createFFmpeg, fetchFile} from "@ffmpeg/ffmpeg";
 import {
     Box,
     Button,
@@ -14,9 +13,8 @@ import CanvasFormatDialog from "./ui/CanvasFormatDialog";
 import {PauseCircle, PlayCircle} from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
 import useStore from "../store/useStore";
+import axios from 'axios';
 import {VIDEO_FIT} from "../utils/utils";
-
-const ffmpeg = createFFmpeg({log: true});
 
 export default function Editor() {
     const canvasFormat = useStore(state => state.canvasFormat);
@@ -26,7 +24,6 @@ export default function Editor() {
     const videoFit = useStore(state => state.videoFit);
     const trimTime = useStore(state => state.trimTime);
     const videoBgColor = useStore(state => state.videoBgColor)
-    const [ffmpegReady, setFfmpegReady] = useState(false);
     const [video, setVideo] = useState(null);
     const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
     const [time, setTime] = useState(0);
@@ -48,36 +45,30 @@ export default function Editor() {
     };
 
     const writeFile = useCallback(async () => {
-        await ffmpeg.FS('writeFile', 'temp.mp4', await fetchFile(video));
-
         const vfOptions = videoFit === VIDEO_FIT._COVER
-            ? `crop=ih*${canvasFormat}:ih`
-            : `pad=width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1`
-        await ffmpeg.run(
-            '-ss',
-            trimTime[0],
-            '-i',
-            'temp.mp4',
-            '-to',
-            trimTime[1],
-            '-copyts',
-            '-vf',
-            vfOptions,
-            'temp_2.mp4',
-        );
+          ? { filter: 'crop', options: `ih*${canvasFormat}:ih`}
+          : { filter: 'pad', options: `width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1` }
 
-        const data = ffmpeg.FS('readFile', 'temp_2.mp4');
-        ffmpeg.exit(0);
-        setResultVideoURL(URL.createObjectURL(new Blob([data.buffer], {type: 'image/gif'})));
+        const formData = new FormData();
+        formData.append("file", video);
+        formData.append("trimTime", trimTime);
+        formData.append("vfOptions", JSON.stringify(vfOptions));
+        const res =  await axios.post('/encode', formData);
+        // await ffmpeg.run(
+        //     '-ss',
+        //     trimTime[0],
+        //     '-i',
+        //     'temp.mp4',
+        //     '-to',
+        //     trimTime[1],
+        //     '-copyts',
+        //     '-vf',
+        //     vfOptions,
+        //     'temp_2.mp4',
+        // );
+
+        setResultVideoURL(res.data.newVideoUrl);
     }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, videoBgColor]);
-
-    useEffect(() => {
-        const load = async () => {
-            await ffmpeg.load();
-            setFfmpegReady(true);
-        }
-        load();
-    }, []);
 
     useEffect(() => {
         video && !canvasFormat && setIsCanvasFormatDialogShown(true);
@@ -127,7 +118,6 @@ export default function Editor() {
     return (
         <Grid container align="center" justifyContent="center" spacing={2}>
             <Grid item align="center" xs={12} lg={8}>
-                {ffmpegReady ? (
                     <Stack spacing={1}>
                         {video && videoUrl && canvasFormat ? (
                             <>
@@ -167,10 +157,7 @@ export default function Editor() {
                         )
                         }
                     </Stack>
-                ) : (
-                    <CircularProgress/>
-                )
-                }
+                    {/*<CircularProgress/>*/}
             </Grid>
             <CanvasFormatDialog
                 open={isCanvasFormatDialogShown}
