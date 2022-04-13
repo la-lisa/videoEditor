@@ -3,8 +3,6 @@ const createVideoSlice = (set, get) => ({
   setVideoUploaded: (uploaded) => set({ videoUploaded: uploaded }),
   resultVideoURL: null,
   setResultVideoURL: (url) => set({ resultVideoURL: url }),
-  resultVideoProgress: {},
-  setResultVideoProgress: (progress) => set({ resultVideoProgress: progress }),
 });
 
 export default createVideoSlice;
