@@ -1,4 +1,4 @@
-import {createRef, useCallback, useEffect, useMemo, useState} from "react";
+import { createRef, useCallback, useEffect, useMemo, useState } from "react";
 import {
     Box,
     Button,
@@ -9,40 +9,45 @@ import {
     useTheme
 } from "@mui/material";
 import DropzoneContainer from "./DropzoneContainer";
-import CanvasFormatDialog from "./ui/CanvasFormatDialog";
-import {PauseCircle, PlayCircle} from "@mui/icons-material";
+import CanvasFormatDialog from "./ui/dialogs/CanvasFormatDialog";
+import { PauseCircle, PlayCircle } from "@mui/icons-material";
 import useEventListener from "../hooks/hooks";
 import useStore from "../store/useStore";
+import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_FIT } from "../utils/utils";
+import VideoProgressDialog from "./ui/dialogs/VideoProgressDialog";
 import axios from 'axios';
-import {VIDEO_FIT} from "../utils/utils";
 
 export default function Editor() {
     const canvasFormat = useStore(state => state.canvasFormat);
-    const setCanvasFormat = useStore(state => state.setCanvasFormat);
+    const canvasFormatChosen = useStore(state => state.canvasFormatChosen);
+    const setCanvasFormatChosen = useStore(state => state.setCanvasFormatChosen);
     const setVideoUploaded = useStore(state => state.setVideoUploaded);
     const setResultVideoURL = useStore(state => state.setResultVideoURL);
     const videoFit = useStore(state => state.videoFit);
     const trimTime = useStore(state => state.trimTime);
-    const videoBgColor = useStore(state => state.videoBgColor)
+    const videoBgColor = useStore(state => state.videoBgColor);
+    const setResultVideoProgress = useStore(state => state.setResultVideoProgress);
+    const openDialog = useStore(state => state.openDialog);
+    const closeDialog = useStore(state => state.closeDialog);
     const [video, setVideo] = useState(null);
-    const [isCanvasFormatDialogShown, setIsCanvasFormatDialogShown] = useState(false);
     const [time, setTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [playing, setPlaying] = useState(false);
 
     useEventListener("keydown", handleKeydown);
+    useEventListener("beforeunload", handleBeforeUnload);
     const theme = useTheme();
-
     const videoElemRef = createRef();
 
-    const handleCanvasFormatDialogBack = () => {
-        setIsCanvasFormatDialogShown(false);
-    }
-
-    const handleCanvasFormatDialogClose = (value) => {
-        setIsCanvasFormatDialogShown(false);
-        setCanvasFormat(value);
+    const handleCanvasFormatDialogAction = () => {
+        setCanvasFormatChosen(true);
+        closeDialog();
     };
+
+    const handleVideoProgressDialogCancel = () => {
+        // TODO figure out how to cancel running task
+        closeDialog();
+    }
 
     const writeFile = useCallback(async () => {
         const vfOptions = videoFit === VIDEO_FIT._COVER
@@ -70,8 +75,21 @@ export default function Editor() {
         setResultVideoURL(res.data.newVideoUrl);
     }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, videoBgColor]);
 
+    /*useEffect(() => {
+        const load = async () => {
+            ffmpeg.setProgress((progress) => setResultVideoProgress(progress));
+            await ffmpeg.load();
+            setFfmpegReady(true);
+        }
+        load();
+    }, []);*/
+
     useEffect(() => {
-        video && !canvasFormat && setIsCanvasFormatDialogShown(true);
+        video && !canvasFormat && openDialog(() => <CanvasFormatDialog />, {
+            title: 'Choose Canvas Format',
+            actionButton: { title: DIALOG_OK_BUTTON_TITLE, onClick: handleCanvasFormatDialogAction },
+            cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: closeDialog },
+        });
     }, [canvasFormat, video]);
 
     const videoUrl = useMemo(() => {
@@ -82,7 +100,6 @@ export default function Editor() {
 
     // propagate change to store when video is uploaded/removed
     useEffect(() => {
-        console.log(!!video);
         setVideoUploaded(!!video);
     }, [setVideoUploaded, video]);
 
@@ -115,55 +132,67 @@ export default function Editor() {
         }
     }
 
+    function handleBeforeUnload(e) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+
+    const showVideo = useMemo(() => {
+        return video && videoUrl && canvasFormat && canvasFormatChosen;
+    }, [canvasFormat, canvasFormatChosen, video, videoUrl]);
+
     return (
-        <Grid container align="center" justifyContent="center" spacing={2}>
-            <Grid item align="center" xs={12} lg={8}>
-                    <Stack spacing={1}>
-                        {video && videoUrl && canvasFormat ? (
-                            <>
-                                <Box className="videoWrapper" style={{aspectRatio: canvasFormat}} sx={{
-                                    alignSelf: 'center',
-                                    height: '60vh',
-                                    maxWidth: '100%',
-                                    border: theme.spacing(0.25),
-                                    borderColor: theme.palette.primary.dark,
-                                    borderStyle: 'dashed',
-                                    bgcolor: videoBgColor,
-                                }}>
-                                    <video className="video"
-                                           style={{width: '100%', height: '100%', objectFit: videoFit}}
-                                           ref={videoElemRef} src={videoUrl} onLoadedMetadata={handleMetadata}
-                                           onTimeUpdate={syncTimeToState}/>
-                                </Box>
-                                <Stack spacing={2} direction="row" sx={{mb: 1}} alignItems="center">
-                                    {/* Timeline */}
-                                    <Box onClick={togglePlaying} sx={{display: "flex", my: 1}}>
-                                        <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large"
-                                                       sx={{cursor: "pointer"}}/>
-                                    </Box>
-                                    <Slider
-                                        defaultValue={0}
-                                        value={time}
-                                        max={duration}
-                                        step={0.05}
-                                        onChange={handleScrub}
-                                        valueLabelDisplay="auto"
-                                    />
-                                </Stack>
-                                <Button variant="contained" onClick={writeFile}>Write File to Memory</Button>
-                            </>
-                        ) : (
-                            <DropzoneContainer setVideo={setVideo}/>
-                        )
-                        }
-                    </Stack>
-                    {/*<CircularProgress/>*/}
-            </Grid>
-            <CanvasFormatDialog
-                open={isCanvasFormatDialogShown}
-                onBack={handleCanvasFormatDialogBack}
-                onClose={handleCanvasFormatDialogClose}
-            />
-        </Grid>
+      <Grid container align="center" justifyContent="center" spacing={2}>
+          <Grid item align="center" xs={12} lg={8}>
+                <Stack spacing={1}>
+                    {showVideo ? (
+                      <>
+                          <Box
+                            className="videoWrapper"
+                            style={{ aspectRatio: canvasFormat }}
+                            sx={{
+                                alignSelf: 'center',
+                                height: '60vh',
+                                maxWidth: '100%',
+                                border: theme.spacing(0.25),
+                                borderColor: theme.palette.primary.dark,
+                                borderStyle: 'dashed',
+                                bgcolor: videoBgColor,
+                            }}
+                          >
+                              <video
+                                className="video"
+                                style={{ width: '100%', height: '100%', objectFit: videoFit }}
+                                ref={videoElemRef}
+                                src={videoUrl}
+                                onLoadedMetadata={handleMetadata}
+                                onTimeUpdate={syncTimeToState}
+                              />
+                          </Box>
+                          <Stack spacing={2} direction="row" sx={{ mb: 1 }} alignItems="center">
+                              {/* Timeline */}
+                              <Box onClick={togglePlaying} sx={{ display: "flex", my: 1 }}>
+                                  <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large" sx={{ cursor: "pointer" }} />
+                              </Box>
+                              <Slider
+                                defaultValue={0}
+                                value={time}
+                                max={duration}
+                                step={0.05}
+                                onChange={handleScrub}
+                                valueLabelDisplay="auto"
+                              />
+                          </Stack>
+                          <Button variant="contained" onClick={writeFile}>Render</Button>
+                      </>
+                    ) : (
+                      <DropzoneContainer setVideo={setVideo}/>
+                    )
+                    }
+                </Stack>
+              {/*
+                <CircularProgress/>*/}
+          </Grid>
+      </Grid>
     );
 }

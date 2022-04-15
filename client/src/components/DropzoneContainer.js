@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import PropTypes from "prop-types";
 import { UploadFile } from "@mui/icons-material";
-import { useTheme } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 
 export default function DropzoneContainer({ setVideo }) {
   const theme = useTheme();
@@ -60,14 +60,14 @@ export default function DropzoneContainer({ setVideo }) {
     ...(isDragAccept ? acceptStyle : {}),
     ...(isDragReject ? rejectStyle : {})
   }), [baseStyle, isFocused, focusedStyle, isDragAccept, acceptStyle, isDragReject, rejectStyle]);
-  
+
   return (
     <section className="dropzoneContainer">
       <div {...getRootProps({ className: 'dropzone', style })}>
         <input {...getInputProps({ id: "upload-video", "aria-describedby": "Video Upload Field" })} />
         <UploadFile fontSize="large"/>
-        <p><b>Upload Video</b></p>
-        <p>Drag your file here or click to browse files</p>
+        <Typography sx={{ fontWeight: 'bold' }} mt={4}>Upload Video</Typography>
+        <Typography mt={2} mb={1}>Drag your file here or click to browse files</Typography>
       </div>
     </section>
   );
