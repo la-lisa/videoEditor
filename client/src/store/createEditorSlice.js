@@ -13,6 +13,12 @@ const createEditorSlice = (set, get) => ({
     videoBgColor: '#000000',
     setVideoBgColor: (videoBgColor) => set({videoBgColor: videoBgColor}),
     editorActions: [],
+    duration: 0,
+    setDuration: (duration) => set({duration: duration}),
+    time: 0,
+    setTime: (time) => set({time: time}),
+    isPlaying: false,
+    toggleIsPlaying: () => set({isPlaying: !get().isPlaying}),
     // TODO: implement undo/redo
     canUndo: false,
     canRedo: false,
