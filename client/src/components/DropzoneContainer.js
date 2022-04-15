@@ -60,7 +60,7 @@ export default function DropzoneContainer({ setVideo }) {
     ...(isDragAccept ? acceptStyle : {}),
     ...(isDragReject ? rejectStyle : {})
   }), [baseStyle, isFocused, focusedStyle, isDragAccept, acceptStyle, isDragReject, rejectStyle]);
-  
+
   return (
     <section className="dropzoneContainer">
       <div {...getRootProps({ className: 'dropzone', style })}>
