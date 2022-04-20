@@ -1,5 +1,18 @@
-import { Box, ListItemIcon, ListItemText, MenuItem, Paper, Stack, Typography, TextField, useTheme } from "@mui/material";
-import { useCallback, useState } from "react";
+import {
+  Box,
+  FormControlLabel,
+  FormGroup,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Paper, Slider,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+  useTheme
+} from "@mui/material";
+import {useCallback, useState} from "react";
 import {
   AlignHorizontalCenter,
   AspectRatio,
@@ -15,10 +28,9 @@ import {
 } from "@mui/icons-material";
 import styles from "./Actions.module.css";
 import ActionItem from "./ActionItem";
-import { CANVAS_FORMATS } from "../utils/utils";
+import {CANVAS_FORMATS, VIDEO_FIT} from "../utils/utils";
 import useStore from "../store/useStore";
-import { VIDEO_FIT } from "../utils/utils";
-import { ChromePicker } from "react-color";
+import {ChromePicker} from "react-color";
 
 export default function Actions() {
   const canvasFormat = useStore(state => state.canvasFormat);
@@ -30,6 +42,10 @@ export default function Actions() {
   const startTime = useStore(state=>state.startTime);
   const setStartTime = useStore(state=>state.setStartTime);
   const setEndTime = useStore(state=>state.setEndTime);
+  const muteAudio = useStore(state=>state.muteAudio);
+  const setMuteAudio = useStore(state=>state.setMuteAudio);
+  const audioVolume = useStore(state=>state.audioVolume);
+  const setAudioVolume = useStore(state=>state.setAudioVolume);
   const [isOpen, setIsOpen] = useState(false);
   const [tempColor, setTempColor] = useState(videoBgColor);
 
@@ -42,6 +58,14 @@ export default function Actions() {
 
   const handleColor = (color) => {
     setTempColor(color.hex);
+  }
+
+  const handleMute = ()=> {
+    setMuteAudio(!muteAudio);
+  }
+
+  const handleAudio = (e) => {
+    setAudioVolume(e.target.value);
   }
 
   return (
@@ -94,8 +118,23 @@ export default function Actions() {
           <ActionItem Icon={() => <ColorLens />} title="Background">
             <ChromePicker disableAlpha={true} color={ tempColor } onChange={handleColor} onChangeComplete={setVideoBgColor(tempColor)} />
           </ActionItem>
-          <ActionItem Icon={() => <VolumeUp />} title="Volume" />
-          <ActionItem Icon={() => <VolumeOff />} title="Mute" />
+          <ActionItem Icon={() => <VolumeUp />} title="Volume" >
+            <Box sx={{ width: 150, height: 70 }}>
+            <Slider aria-label="Volume %" onChange={handleAudio} defaultValue={100} valueLabelDisplay="auto" value={audioVolume}
+                    step={10}
+                    marks
+                    min={10}
+                    max={150}  sx={{top: 25}}/>
+
+          </Box>
+        </ActionItem>
+          <ActionItem Icon={() => <VolumeOff />} title="Mute" >
+            <FormGroup>
+              <FormControlLabel control={<Switch  onChange={handleMute} checked={muteAudio} color="primary" />}
+                                label="Audio Off"
+                                labelPlacement="top"/>
+            </FormGroup>
+          </ActionItem>
         </Stack>
         <Box sx={{ writingMode: 'tb', cursor: 'pointer' }} onClick={toggleActions}>
           <Stack direction="row" sx={{ padding: 1 }}>

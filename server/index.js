@@ -51,13 +51,13 @@ app.post('/encode', upload.single('file'), async (req, res) => {
     let upload_path = video.path;
     let vfOptions = req.body.vfOptions;
     let trimTime = JSON.parse(req.body.trimTime);
-
+    let afOptions = req.body.afOptions;
 
     ffmpeg(upload_path)
-      .videoFilters(JSON.parse(vfOptions)
-      )
+      .videoFilters(JSON.parse(vfOptions))
       .setStartTime(trimTime[0])
       .setDuration(trimTime[1] - trimTime[0])
+      .audioFilter(JSON.parse(afOptions))
       .on('error', function(err) {
         console.log('An error occurred: ' + err.message);
       })

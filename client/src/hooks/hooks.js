@@ -45,6 +45,8 @@ export function useWriteFile() {
   const closeDialog = useStore(state => state.closeDialog);
   const startTime = useStore(state => state.startTime);
   const endTime = useStore(state => state.endTime);
+  const muteAudio = useStore(state => state.muteAudio);
+  const audioVolume = useStore(state => state.audioVolume);
 
   const handleVideoProgressDialogCancel = () => {
     // TODO figure out how to cancel running task
@@ -78,10 +80,13 @@ export function useWriteFile() {
     let secondsStart = (+start[0]) * 60 * 60 + (+start[1]) * 60 + (+start[2]);
     let secondsEnd = (+end[0]) * 60 * 60 + (+end[1]) * 60 + (+end[2]);
 
+    const audioOptions = muteAudio ? {filter: 'volume', options: '0.0'} : {filter: 'volume', options: `${audioVolume/100}`}
+
     const formData = new FormData();
     formData.append("file", video);
     formData.append("trimTime", JSON.stringify([secondsStart,secondsEnd]));
     formData.append("vfOptions", JSON.stringify(vfOptions));
+    formData.append("afOptions", JSON.stringify(audioOptions));
     axios.post('/encode', formData)
       .then((res) => {
         setResultVideoURL(res.data.newVideoUrl);
