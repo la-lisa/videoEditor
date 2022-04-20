@@ -9,8 +9,17 @@ import Actions from "./Actions";
 import Result from "./Result";
 import ModalDialog from "./ui/dialogs/ModalDialog";
 import CustomAppBar from "./ui/appbar/CustomAppBar";
+import { useRef, useState } from "react";
+import Timeline from "./Timeline";
 
 function App() {
+  const [videoReady, setVideoReady] = useState(false);
+  const videoElemRef = useRef();
+
+  const handleVideoReady = () => {
+    setVideoReady(true);
+  }
+
   const theme = createTheme({
     palette: {
       mode: "dark",
@@ -20,13 +29,14 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline/>
-      <CustomAppBar />
+      <CustomAppBar videoReady={videoReady} />
       <Container className="App" maxWidth="lg" sx={{ mt: 8 }}>
         <Stack spacing={2}>
           <Stack direction="row" spacing={4}>
-            <Editor />
-            <Actions />
+            <Editor ref={videoElemRef} onReady={handleVideoReady} />
+            {videoReady && <Actions />}
           </Stack>
+          {videoReady && <Timeline ref={videoElemRef} />}
           <Result />
         </Stack>
         <ModalDialog />

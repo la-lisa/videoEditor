@@ -14,8 +14,11 @@ import { ReactComponent as Logo } from "../../../assets/logo.svg";
 import UndoRedoButtons from "./UndoRedoButtons";
 import { createTheme } from "@mui/material/styles";
 import useStore from "../../../store/useStore";
+import { useWriteFile } from "../../../hooks/hooks";
 
-export default function CustomAppBar() {
+export default function CustomAppBar({ videoReady }) {
+  const writeFile = useWriteFile();
+
   const showButtons = useStore(state => state.canvasFormatChosen);
 
   const createButtonTheme = (theme) => createTheme({
@@ -50,7 +53,7 @@ export default function CustomAppBar() {
             {showButtons && (
               <ThemeProvider theme={(theme) => createButtonTheme(theme)}>
                 <UndoRedoButtons />
-                <Button disabled>
+                <Button onClick={writeFile} disabled={!videoReady}>
                   render
                 </Button>
               </ThemeProvider>
