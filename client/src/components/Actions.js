@@ -27,9 +27,13 @@ export default function Actions() {
   const setVideoFit = useStore(state => state.setVideoFit);
   const videoBgColor = useStore(state=>state.videoBgColor);
   const setVideoBgColor = useStore(state=>state.setVideoBgColor);
-  const trimTime = useStore(state=>state.trimTime);
-  const setTrimTime = useStore(state=>state.setTrimTime);
+  const endTime = useStore(state=>state.endTime);
+  const startTime = useStore(state=>state.startTime);
+  const setStartTime = useStore(state=>state.setStartTime);
+  const setEndTime = useStore(state=>state.setEndTime);
   const [isOpen, setIsOpen] = useState(false);
+  const [tempColor, setTempColor] = useState(videoBgColor);
+
 
   const toggleActions = useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -38,7 +42,7 @@ export default function Actions() {
   const theme = useTheme();
 
   const handleColor = (color) => {
-    //setVideoBgColor({videoBgColor: color.hex});
+    setTempColor(color.hex);
   }
 
   return (
@@ -76,8 +80,8 @@ export default function Actions() {
                 })}
               </ActionItem>
               <ActionItem Icon={() => <AvTimer />} title="Trim">
-                <TextField id="start" label="Starting Time" variant="outlined" value={trimTime[0]} />
-                <TextField id="end" label="End Time" variant="outlined" value={trimTime[1]}/>
+                <TextField id="start" label="Starting Time" variant="outlined" value={startTime} onChange={(e)=>setStartTime(e.target.value)} />
+                <TextField id="end" label="End Time" variant="outlined" value={endTime} onChange={(e)=>setEndTime(e.target.value)}/>
                 {/*For time picking later*/}
                 {/*<Slider*/}
                 {/*    getAriaLabel={() => 'Trim video'}*/}
@@ -91,7 +95,7 @@ export default function Actions() {
               <ActionItem Icon={() => <ZoomIn />} title="Zoom" />
               <ActionItem Icon={() => <Contrast />} title="Adjustments" />
               <ActionItem Icon={() => <ColorLens />} title="Background">
-                <ChromePicker disableAlpha={true} color={ videoBgColor } onChange={handleColor} />
+                <ChromePicker disableAlpha={true} color={ tempColor } onChange={handleColor} onChangeComplete={setVideoBgColor(tempColor)} />
               </ActionItem>
               <ActionItem Icon={() => <VolumeUp />} title="Volume" />
               <ActionItem Icon={() => <VolumeOff />} title="Mute" />
