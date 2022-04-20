@@ -16,6 +16,7 @@ import useStore from "../store/useStore";
 import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_FIT } from "../utils/utils";
 import VideoProgressDialog from "./ui/dialogs/VideoProgressDialog";
 import axios from 'axios';
+import io from "socket.io-client";
 
 export default function Editor() {
     const canvasFormat = useStore(state => state.canvasFormat);
@@ -24,7 +25,8 @@ export default function Editor() {
     const setVideoUploaded = useStore(state => state.setVideoUploaded);
     const setResultVideoURL = useStore(state => state.setResultVideoURL);
     const videoFit = useStore(state => state.videoFit);
-    const trimTime = useStore(state => state.trimTime);
+    const startTime = useStore(state => state.startTime);
+    const endTime = useStore(state => state.endTime);
     const videoBgColor = useStore(state => state.videoBgColor);
     const setResultVideoProgress = useStore(state => state.setResultVideoProgress);
     const openDialog = useStore(state => state.openDialog);
@@ -51,38 +53,35 @@ export default function Editor() {
 
     const writeFile = useCallback(async () => {
         const vfOptions = videoFit === VIDEO_FIT._COVER
-          ? { filter: 'crop', options: `ih*${canvasFormat}:ih`}
-          : { filter: 'pad', options: `width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1` }
+          ? { filter: 'crop', options: {w:`ih*${canvasFormat}`, h:'ih'}}
+          : [{ filter: 'pad', options: {w:`max(iw\\,ih*(${canvasFormat}))`, h:`ow/(${canvasFormat})`, x: '(ow-iw)/2', y:'(oh-ih)/2', color:`${videoBgColor}`}}, {filter: 'setsar',
+            options: '1'}]
+
+        var start = startTime.split(':');
+        var end = endTime.split(':');
+        var secondsStart = (+start[0]) * 60 * 60 + (+start[1]) * 60 + (+start[2]);
+        var secondsEnd = (+end[0]) * 60 * 60 + (+end[1]) * 60 + (+end[2]);
 
         const formData = new FormData();
         formData.append("file", video);
-        formData.append("trimTime", trimTime);
+        formData.append("trimTime", JSON.stringify([secondsStart,secondsEnd]));
         formData.append("vfOptions", JSON.stringify(vfOptions));
         const res =  await axios.post('/encode', formData);
-        // await ffmpeg.run(
-        //     '-ss',
-        //     trimTime[0],
-        //     '-i',
-        //     'temp.mp4',
-        //     '-to',
-        //     trimTime[1],
-        //     '-copyts',
-        //     '-vf',
-        //     vfOptions,
-        //     'temp_2.mp4',
-        // );
 
         setResultVideoURL(res.data.newVideoUrl);
-    }, [video, videoFit, setResultVideoURL, trimTime, canvasFormat, videoBgColor]);
+    }, [video, videoFit, setResultVideoURL, startTime, endTime, canvasFormat, videoBgColor]);
 
-    /*useEffect(() => {
+
+    useEffect(() => {
         const load = async () => {
-            ffmpeg.setProgress((progress) => setResultVideoProgress(progress));
-            await ffmpeg.load();
-            setFfmpegReady(true);
+            var socket = io('http://localhost:3001');
+            socket.on("uploadProgress", (progress) => {
+                console.log(progress + "%")
+                setResultVideoProgress(progress)
+            })
         }
         load();
-    }, []);*/
+    }, []);
 
     useEffect(() => {
         video && !canvasFormat && openDialog(() => <CanvasFormatDialog />, {
@@ -157,12 +156,12 @@ export default function Editor() {
                                 border: theme.spacing(0.25),
                                 borderColor: theme.palette.primary.dark,
                                 borderStyle: 'dashed',
-                                bgcolor: videoBgColor,
+                                backgroundColor: videoBgColor,
                             }}
                           >
                               <video
                                 className="video"
-                                style={{ width: '100%', height: '100%', objectFit: videoFit }}
+                                style={{ width: '100%', height: '100%', objectFit: videoFit, backgroundColor: videoBgColor }}
                                 ref={videoElemRef}
                                 src={videoUrl}
                                 onLoadedMetadata={handleMetadata}

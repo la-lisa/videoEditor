@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 app.use(bodyParser.json());
@@ -16,6 +17,21 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cors());
 app.use(express.static('server/public'))
+
+const server = app.listen(PORT, () => {
+  console.log(`Server listening on ${PORT}`);
+});
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+
+io.on("connection", (socket) => {
+    console.log('CONNECTED');
+    socket.join('sessionId');
+})
 
 var upload = multer({
   storage: multer.diskStorage({
@@ -29,25 +45,38 @@ var upload = multer({
 
 const encodedPath = "converted/output.mp4";
 
-app.post('/encode', upload.single('file'), (req, res) => {
+app.post('/encode', upload.single('file'), async (req, res) => {
   if (req.file) {
     let video = req.file;
     let upload_path = video.path;
     let vfOptions = req.body.vfOptions;
-    let trimTime = req.body.trimTime;
+    let trimTime = JSON.parse(req.body.trimTime);
+
 
     ffmpeg(upload_path)
       .videoFilters(JSON.parse(vfOptions)
       )
+      .setStartTime(trimTime[0])
+      .setDuration(trimTime[1] - trimTime[0])
       .on('error', function(err) {
         console.log('An error occurred: ' + err.message);
       })
+      .on('progress', function(progress) {
+        io.sockets.in('sessionId').emit('uploadProgress', progress.percent)
+        console.log('Processing: ' + progress.percent + '% done');
+      })
       .on('end', function() {
         console.log('Processing finished !');
-        fs.unlinkSync(upload_path)
+        try {
+          fs.unlinkSync(upload_path)
+          //file removed
+        } catch(err) {
+          console.error(err)
+        }
         res.json({newVideoUrl: encodedPath});
       })
       .save('server/public/converted/output.mp4');
+
   } else {
     res.json({
       uploaded: false
@@ -55,6 +84,3 @@ app.post('/encode', upload.single('file'), (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on ${PORT}`);
-});
