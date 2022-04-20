@@ -10,9 +10,6 @@ import CanvasFormatDialog from "./ui/dialogs/CanvasFormatDialog";
 import { useEventListener } from "../hooks/hooks";
 import useStore from "../store/useStore";
 import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from "../utils/utils";
-import VideoProgressDialog from "./ui/dialogs/VideoProgressDialog";
-import axios from 'axios';
-import io from "socket.io-client";
 
 const Editor = ({ onReady }, ref) => {
   const video = useStore(state => state.video);
@@ -21,16 +18,12 @@ const Editor = ({ onReady }, ref) => {
   const canvasFormatChosen = useStore(state => state.canvasFormatChosen);
   const setCanvasFormatChosen = useStore(state => state.setCanvasFormatChosen);
   const videoFit = useStore(state => state.videoFit);
-  const startTime = useStore(state => state.startTime);
-  const endTime = useStore(state => state.endTime);
   const videoBgColor = useStore(state => state.videoBgColor);
   const openDialog = useStore(state => state.openDialog);
   const closeDialog = useStore(state => state.closeDialog);
   const setDuration = useStore(state => state.setDuration);
   const toggleIsPlaying = useStore(state => state.toggleIsPlaying);
   const setTime = useStore(state => state.setTime);
-  const setResultVideoURL = useStore(state => state.setResultVideoURL);
-  const setResultVideoProgress = useStore(state => state.setResultVideoProgress);
 
   useEventListener("keydown", handleKeydown);
   useEventListener("beforeunload", handleBeforeUnload);
@@ -40,37 +33,6 @@ const Editor = ({ onReady }, ref) => {
     setCanvasFormatChosen(true);
     closeDialog();
   };
-    const writeFile = useCallback(async () => {
-        const vfOptions = videoFit === VIDEO_FIT._COVER
-          ? { filter: 'crop', options: {w:`ih*${canvasFormat}`, h:'ih'}}
-          : [{ filter: 'pad', options: {w:`max(iw\\,ih*(${canvasFormat}))`, h:`ow/(${canvasFormat})`, x: '(ow-iw)/2', y:'(oh-ih)/2', color:`${videoBgColor}`}}, {filter: 'setsar',
-            options: '1'}]
-
-        let start = startTime.split(':');
-        let end = endTime.split(':');
-        let secondsStart = (+start[0]) * 60 * 60 + (+start[1]) * 60 + (+start[2]);
-        let secondsEnd = (+end[0]) * 60 * 60 + (+end[1]) * 60 + (+end[2]);
-
-        const formData = new FormData();
-        formData.append("file", video);
-        formData.append("trimTime", JSON.stringify([secondsStart,secondsEnd]));
-        formData.append("vfOptions", JSON.stringify(vfOptions));
-        const res =  await axios.post('/encode', formData);
-
-        setResultVideoURL(res.data.newVideoUrl);
-    }, [video, videoFit, setResultVideoURL, startTime, endTime, canvasFormat, videoBgColor]);
-
-
-    useEffect(() => {
-        const load = async () => {
-            var socket = io('http://localhost:3001');
-            socket.on("uploadProgress", (progress) => {
-                console.log(progress + "%")
-                setResultVideoProgress(progress)
-            })
-        }
-        load();
-    }, []);
 
   useEffect(() => {
     video && !canvasFormat && openDialog(() => <CanvasFormatDialog />, {

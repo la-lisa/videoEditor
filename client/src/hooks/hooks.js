@@ -1,8 +1,9 @@
-import {useEffect, useRef} from "react";
+import {useCallback, useEffect, useRef} from "react";
 import VideoProgressDialog from "../components/ui/dialogs/VideoProgressDialog";
 import useStore from "../store/useStore";
 import {DIALOG_CANCEL_BUTTON_TITLE, VIDEO_FIT} from "../utils/utils";
 import axios from "axios";
+import io from "socket.io-client";
 
 // https://usehooks.com/useEventListener/
 export function useEventListener(eventName, handler, element = window) {
@@ -37,17 +38,29 @@ export function useEventListener(eventName, handler, element = window) {
 export function useWriteFile() {
   const video = useStore(state => state.video);
   const videoFit = useStore(state => state.videoFit);
-  const trimTime = useStore(state => state.trimTime);
   const canvasFormat = useStore(state => state.canvasFormat);
   const videoBgColor = useStore(state => state.videoBgColor);
   const setResultVideoURL = useStore(state => state.setResultVideoURL);
   const openDialog = useStore(state => state.openDialog);
   const closeDialog = useStore(state => state.closeDialog);
+  const startTime = useStore(state => state.startTime);
+  const endTime = useStore(state => state.endTime);
 
   const handleVideoProgressDialogCancel = () => {
     // TODO figure out how to cancel running task
     closeDialog();
   }
+
+  useEffect(() => {
+    const load = async () => {
+      var socket = io('http://localhost:3001');
+      socket.on("uploadProgress", (progress) => {
+        console.log(progress + "%")
+      })
+    }
+    load();
+  }, []);
+
 
   return async () => {
     openDialog(() => <VideoProgressDialog/>, {
@@ -56,17 +69,19 @@ export function useWriteFile() {
     });
 
     const vfOptions = videoFit === VIDEO_FIT._COVER
-      ? { filter: 'crop', options: `ih*${canvasFormat}:ih` }
-      : {
-        filter: 'pad',
-        options: `width=max(iw\\,ih*(${canvasFormat})):height=ow/(${canvasFormat}):x=(ow-iw)/2:y=(oh-ih)/2:color=${videoBgColor},setsar=1`
-      }
+      ? { filter: 'crop', options: {w:`ih*${canvasFormat}`, h:'ih'}}
+      : [{ filter: 'pad', options: {w:`max(iw\\,ih*(${canvasFormat}))`, h:`ow/(${canvasFormat})`, x: '(ow-iw)/2', y:'(oh-ih)/2', color:`${videoBgColor}`}}, {filter: 'setsar',
+        options: '1'}]
+
+    let start = startTime.split(':');
+    let end = endTime.split(':');
+    let secondsStart = (+start[0]) * 60 * 60 + (+start[1]) * 60 + (+start[2]);
+    let secondsEnd = (+end[0]) * 60 * 60 + (+end[1]) * 60 + (+end[2]);
 
     const formData = new FormData();
     formData.append("file", video);
-    formData.append("trimTime", trimTime);
+    formData.append("trimTime", JSON.stringify([secondsStart,secondsEnd]));
     formData.append("vfOptions", JSON.stringify(vfOptions));
-
     axios.post('/encode', formData)
       .then((res) => {
         setResultVideoURL(res.data.newVideoUrl);
