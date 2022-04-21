@@ -108,7 +108,6 @@ const Editor = ({ onReady }, ref) => {
             <DropzoneContainer setVideo={setVideo}/>
           )}
         </Stack>
-        {/*<CircularProgress/>*/}
       </Grid>
     </Grid>
   );

@@ -3,6 +3,7 @@ const PORT = process.env.PORT || 3001;
 const app = express();
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
+const ffmpegOnProgress = require('ffmpeg-on-progress')
 const cors = require('cors')
 const bodyParser = require('body-parser');
 const multer = require('multer');
@@ -33,7 +34,7 @@ io.on("connection", (socket) => {
     socket.join('sessionId');
 })
 
-var upload = multer({
+const upload = multer({
   storage: multer.diskStorage({
     destination: './server/uploads/',
     filename: function(req, file, cb) {
@@ -47,25 +48,28 @@ const encodedPath = "converted/output.mp4";
 
 app.post('/encode', upload.single('file'), async (req, res) => {
   if (req.file) {
-    let video = req.file;
-    let upload_path = video.path;
-    let vfOptions = req.body.vfOptions;
-    let trimTime = JSON.parse(req.body.trimTime);
-    let afOptions = req.body.afOptions;
+    const video = req.file;
+    const upload_path = video.path;
+    const vfOptions = req.body.vfOptions;
+    const trimTime = JSON.parse(req.body.trimTime);
+    const afOptions = req.body.afOptions;
+    const duration = { s: trimTime[1] - trimTime[0], ms: (trimTime[1] - trimTime[0]) * 1000, };
+
+    const logProgress = (progress, _) => {
+      io.sockets.in('sessionId').emit('uploadProgress', progress)
+      console.log('Processing: ' + (progress * 100).toFixed() + '% done');
+    }
 
     ffmpeg(upload_path)
       .videoFilters(JSON.parse(vfOptions))
       .setStartTime(trimTime[0])
-      .setDuration(trimTime[1] - trimTime[0])
+      .setDuration(duration.s)
       .audioFilter(JSON.parse(afOptions))
-      .on('error', function(err) {
+      .on('error', (err) => {
         console.log('An error occurred: ' + err.message);
       })
-      .on('progress', function(progress) {
-        io.sockets.in('sessionId').emit('uploadProgress', progress.percent)
-        console.log('Processing: ' + progress.percent + '% done');
-      })
-      .on('end', function() {
+      .on('progress', ffmpegOnProgress(logProgress, duration.ms))
+      .on('end', () => {
         console.log('Processing finished !');
         try {
           fs.unlinkSync(upload_path)
@@ -76,7 +80,6 @@ app.post('/encode', upload.single('file'), async (req, res) => {
         res.json({newVideoUrl: encodedPath});
       })
       .save('server/public/converted/output.mp4');
-
   } else {
     res.json({
       uploaded: false

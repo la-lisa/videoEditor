@@ -23,6 +23,7 @@
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "express": "^4.17.3",
+    "ffmpeg-on-progress": "^1.0.0",
     "ffmpeg-static": "^5.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "multer": "^1.4.4",
