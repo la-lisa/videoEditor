@@ -1,27 +1,23 @@
-import useStore from "../../../store/useStore";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  Typography
-} from "@mui/material";
+import useStore from '../../../store/useStore';
+import { Button, Dialog, DialogActions, DialogTitle, Typography } from '@mui/material';
 
 export default function ModalDialog() {
-  const content = useStore(state => state.dialogContent);
-  const state = useStore(state => state.dialogState);
-  const open = useStore(state => state.isDialogShown);
-  const setOpen = useStore(state => state.setIsDialogShown);
+  const content = useStore((state) => state.dialogContent);
+  const state = useStore((state) => state.dialogState);
+  const open = useStore((state) => state.isDialogShown);
+  const setOpen = useStore((state) => state.setIsDialogShown);
   const { title, actionButton, cancelButton } = state;
 
   const onClose = () => {
     setOpen(false);
-  }
+  };
 
   return (
     <Dialog onClose={onClose} open={open} aria-label={`${title} Dialog`}>
       <DialogTitle>
-        <Typography variant="h6" component="p" align="center">{title}</Typography>
+        <Typography variant="h6" component="p" align="center">
+          {title}
+        </Typography>
       </DialogTitle>
       {content && content()}
       {(actionButton || cancelButton) && (

@@ -4,8 +4,8 @@ module.exports = function (app) {
   app.use(function (req, res, next) {
     // this enables cross-origin isolation, which is necessary
     // for SharedArrayBuffer (which ffmpeg-wasm uses)
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     next();
   });
 

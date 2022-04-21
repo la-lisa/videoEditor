@@ -1,6 +1,6 @@
-import { Menu, Stack, Typography } from "@mui/material";
-import PropTypes from "prop-types";
-import { useState } from "react";
+import { Menu, Stack, Typography } from '@mui/material';
+import PropTypes from 'prop-types';
+import { useState } from 'react';
 
 export default function ActionItem({ Icon, title, children }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -16,7 +16,12 @@ export default function ActionItem({ Icon, title, children }) {
 
   return (
     <>
-      <Stack direction="row" spacing={2} onClick={handleClick} sx={{ whiteSpace: 'nowrap', alignItems: 'center', cursor: 'pointer' }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        onClick={handleClick}
+        sx={{ whiteSpace: 'nowrap', alignItems: 'center', cursor: 'pointer' }}
+      >
         <Icon />
         <Typography>{title}</Typography>
       </Stack>
@@ -45,8 +50,5 @@ export default function ActionItem({ Icon, title, children }) {
 ActionItem.propTypes = {
   Icon: PropTypes.func,
   title: PropTypes.string,
-  children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.node),
-    PropTypes.node
-  ]),
+  children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 };

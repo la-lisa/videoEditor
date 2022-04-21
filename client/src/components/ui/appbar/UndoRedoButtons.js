@@ -1,10 +1,10 @@
-import { Button, Stack } from "@mui/material";
-import { Redo, Undo } from "@mui/icons-material";
-import useStore from "../../../store/useStore";
+import { Button, Stack } from '@mui/material';
+import { Redo, Undo } from '@mui/icons-material';
+import useStore from '../../../store/useStore';
 
 export default function UndoRedoButtons() {
-  const canUndo = useStore(state => state.canUndo);
-  const canRedo = useStore(state => state.canRedo);
+  const canUndo = useStore((state) => state.canUndo);
+  const canRedo = useStore((state) => state.canRedo);
 
   return (
     <Stack direction="row">

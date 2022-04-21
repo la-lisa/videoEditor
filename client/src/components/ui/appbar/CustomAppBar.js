@@ -8,34 +8,35 @@ import {
   SvgIcon,
   ThemeProvider,
   Toolbar,
-  Typography
-} from "@mui/material";
-import { ReactComponent as Logo } from "../../../assets/logo.svg";
-import UndoRedoButtons from "./UndoRedoButtons";
-import { createTheme } from "@mui/material/styles";
-import useStore from "../../../store/useStore";
-import { useWriteFile } from "../../../hooks/hooks";
+  Typography,
+} from '@mui/material';
+import { ReactComponent as Logo } from '../../../assets/logo.svg';
+import UndoRedoButtons from './UndoRedoButtons';
+import { createTheme } from '@mui/material/styles';
+import useStore from '../../../store/useStore';
+import { useWriteFile } from '../../../hooks/hooks';
 
 export default function CustomAppBar({ videoReady }) {
   const writeFile = useWriteFile();
 
-  const showButtons = useStore(state => state.canvasFormatChosen);
+  const showButtons = useStore((state) => state.canvasFormatChosen);
 
-  const createButtonTheme = (theme) => createTheme({
-    ...theme,
-    palette: {
-      ...theme.palette,
-      primary: {
-        ...theme.palette.primary,
-        main: theme.palette.primary.contrastText,
+  const createButtonTheme = (theme) =>
+    createTheme({
+      ...theme,
+      palette: {
+        ...theme.palette,
+        primary: {
+          ...theme.palette.primary,
+          main: theme.palette.primary.contrastText,
+        },
+        action: {
+          ...theme.action,
+          disabled: alpha(theme.palette.primary.contrastText, theme.palette.action.disabledOpacity),
+        },
+        divider: theme.palette.primary.contrastText,
       },
-      action: {
-        ...theme.action,
-        disabled: alpha(theme.palette.primary.contrastText, theme.palette.action.disabledOpacity),
-      },
-      divider: theme.palette.primary.contrastText,
-    }
-  });
+    });
 
   return (
     <Box sx={{ flexGrow: 1 }}>
