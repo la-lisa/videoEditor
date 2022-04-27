@@ -4,7 +4,7 @@ import { Container, useTheme } from '@mui/material';
 
 export default function VideoProgressDialog() {
   const progress = useStore((state) => state.resultVideoProgress);
-  const val = progress ? Math.max(0, progress * 100) : 0;
+  const val = Number.parseFloat(progress) ? Math.max(0, progress * 100) : 0;
   const theme = useTheme();
 
   return (
