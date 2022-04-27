@@ -77,14 +77,14 @@ export default function Actions() {
           sx={isOpen ? { padding: 2 } : {}}
         >
           <ActionItem Icon={() => <AspectRatio />} title="Aspect Ratio">
-            {Object.values(CANVAS_FORMATS).map((format) => {
+            {Object.keys(CANVAS_FORMATS).map((key) => {
               return (
-                <MenuItem key={format} onClick={() => setCanvasFormat(format)} selected={canvasFormat === format}>
+                <MenuItem key={`menuItem-${key}`} onClick={() => setCanvasFormat(key)} selected={canvasFormat === key}>
                   <Stack direction="row" spacing={1}>
                     <ListItemIcon>
                       <QuestionMark fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>{format}</ListItemText>
+                    <ListItemText>{CANVAS_FORMATS[key].title}</ListItemText>
                   </Stack>
                 </MenuItem>
               );

@@ -1,13 +1,13 @@
 import Editor from './Editor.js';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Container, CssBaseline, Stack } from '@mui/material';
+import { Box, Container, CssBaseline, Stack } from '@mui/material';
 import Actions from './Actions';
 import ModalDialog from './ui/dialogs/ModalDialog';
 import CustomAppBar from './ui/appbar/CustomAppBar';
 import { useRef, useState } from 'react';
 import Timeline from './Timeline';
 
-function App() {
+export default function App() {
   const [videoReady, setVideoReady] = useState(false);
   const videoElemRef = useRef();
 
@@ -23,20 +23,20 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <CustomAppBar videoReady={videoReady} />
-      <Container className="App" maxWidth="lg" sx={{ mt: 8 }}>
-        <Stack spacing={2}>
-          <Stack direction="row" spacing={4}>
-            <Editor ref={videoElemRef} onReady={handleVideoReady} />
-            {videoReady && <Actions />}
+      <Box sx={{ height: '100%' }}>
+        <CssBaseline />
+        <CustomAppBar videoReady={videoReady} />
+        <Container className="App" maxWidth="lg" sx={{ height: '100%', pt: 8 }}>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={4}>
+              <Editor ref={videoElemRef} onReady={handleVideoReady} />
+              {videoReady && <Actions />}
+            </Stack>
+            {videoReady && <Timeline ref={videoElemRef} />}
           </Stack>
-          {videoReady && <Timeline ref={videoElemRef} />}
-        </Stack>
-        <ModalDialog />
-      </Container>
+          <ModalDialog />
+        </Container>
+      </Box>
     </ThemeProvider>
   );
 }
-
-export default App;

@@ -4,7 +4,7 @@ import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
 import { useEventListener } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
 
 const Editor = ({ onReady }, ref) => {
   const video = useStore((state) => state.video);
@@ -73,19 +73,25 @@ const Editor = ({ onReady }, ref) => {
     if (showVideo === true && onReady) onReady();
   }, [showVideo, onReady]);
 
+  const videoContainerPadding = useMemo(
+    () => (canvasFormat ? `${(CANVAS_FORMATS[canvasFormat].y / CANVAS_FORMATS[canvasFormat].x) * 100}%` : 0),
+    [canvasFormat]
+  );
+
   return (
-    <Grid container align="center" justifyContent="center" spacing={2}>
+    <Grid container align="center" justifyContent="center">
       <Grid item align="center" xs={12} lg={8}>
         <Stack spacing={1}>
           {showVideo ? (
             <>
               <Box
                 className="videoWrapper"
-                style={{ aspectRatio: canvasFormat }}
                 sx={{
+                  position: 'relative',
+                  paddingTop: videoContainerPadding,
                   alignSelf: 'center',
-                  height: '60vh',
-                  maxWidth: '100%',
+                  height: 0,
+                  width: '100%',
                   border: theme.spacing(0.25),
                   borderColor: theme.palette.primary.dark,
                   borderStyle: 'dashed',
@@ -94,7 +100,7 @@ const Editor = ({ onReady }, ref) => {
               >
                 <video
                   className="video"
-                  style={{ width: '100%', height: '100%', objectFit: videoFit, backgroundColor: videoBgColor }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: videoFit }}
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
-import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
@@ -91,7 +91,7 @@ export function useWriteFile() {
         ? {
             filter: 'crop',
             options: {
-              w: `ih*${canvasFormat}`,
+              w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
               h: 'ih',
             },
           }
@@ -99,8 +99,8 @@ export function useWriteFile() {
             {
               filter: 'pad',
               options: {
-                w: `max(iw\\,ih*(${canvasFormat}))`,
-                h: `ow/(${canvasFormat})`,
+                w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
+                h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
                 x: '(ow-iw)/2',
                 y: '(oh-ih)/2',
                 color: `${videoBgColor}`,
