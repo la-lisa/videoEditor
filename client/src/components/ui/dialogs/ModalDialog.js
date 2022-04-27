@@ -23,12 +23,12 @@ export default function ModalDialog() {
       {(actionButton || cancelButton) && (
         <DialogActions sx={{ mt: 2 }}>
           {cancelButton && (
-            <Button onClick={cancelButton.onClick || undefined} variant="outlined">
+            <Button onClick={cancelButton.onClick || undefined} variant="outlined" {...cancelButton}>
               {cancelButton.title}
             </Button>
           )}
           {actionButton && (
-            <Button onClick={actionButton.onClick || undefined} variant="contained">
+            <Button onClick={actionButton.onClick || undefined} variant="contained" {...actionButton}>
               {actionButton.title}
             </Button>
           )}

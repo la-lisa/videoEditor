@@ -61,7 +61,6 @@ const paths = {
   },
 };
 const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${paths.video.filename}`;
-const newThumbUrl = `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}/${paths.thumb.filename}`;
 
 const logProgress = (progress, _) => {
   io.sockets.in("sessionId").emit("uploadProgress", progress);
@@ -117,6 +116,12 @@ const processVideo = (req, res, location, params) => {
   });
 };
 
+app.get("/download/video/:filename", (req, res) => {
+  res.download(
+    `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${req.params.filename}`
+  );
+});
+
 app.post("/encode", upload.single("file"), (req, res) => {
   if (req.file) {
     const video = req.file;
@@ -139,7 +144,7 @@ app.post("/encode", upload.single("file"), (req, res) => {
       .then(() => {
         res.json({
           newVideoUrl: `${paths.baseFolder}/${paths.video.folder}/${paths.video.filename}`,
-          newThumbUrl: newThumbUrl,
+          newThumbUrl: `${paths.baseFolder}/${paths.thumb.folder}/${paths.thumb.filename}`,
         });
       })
       .catch((e) => console.error(e));

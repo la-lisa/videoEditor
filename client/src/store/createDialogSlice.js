@@ -4,6 +4,7 @@ const createDialogSlice = (set, get) => ({
   dialogContent: null,
   dialogState: { title: '', actionButton: null, cancelButton: null },
   openDialog: (content, state) => set({ isDialogShown: true, dialogContent: content, dialogState: state }),
+  setDialog: (content, state) => set({ dialogContent: content, dialogState: state }),
   closeDialog: () => set({ isDialogShown: false, dialogContent: null }),
 });
 

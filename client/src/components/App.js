@@ -2,7 +2,6 @@ import Editor from './Editor.js';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Container, CssBaseline, Stack } from '@mui/material';
 import Actions from './Actions';
-import Result from './Result';
 import ModalDialog from './ui/dialogs/ModalDialog';
 import CustomAppBar from './ui/appbar/CustomAppBar';
 import { useRef, useState } from 'react';
@@ -33,7 +32,6 @@ function App() {
             {videoReady && <Actions />}
           </Stack>
           {videoReady && <Timeline ref={videoElemRef} />}
-          <Result />
         </Stack>
         <ModalDialog />
       </Container>

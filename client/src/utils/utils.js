@@ -10,5 +10,6 @@ export const VIDEO_FIT = {
   _COVER: 'cover',
 };
 
-export const DIALOG_CANCEL_BUTTON_TITLE = 'cancel';
 export const DIALOG_OK_BUTTON_TITLE = 'ok';
+export const DIALOG_CANCEL_BUTTON_TITLE = 'cancel';
+export const DIALOG_SAVE_BUTTON_TITLE = 'save';

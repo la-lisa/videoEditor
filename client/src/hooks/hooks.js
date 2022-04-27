@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
-import { DIALOG_CANCEL_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
+import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
+import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
 
 // https://usehooks.com/useEventListener/
 export function useEventListener(eventName, handler, element = window) {
@@ -40,9 +41,12 @@ export function useWriteFile() {
   const videoFit = useStore((state) => state.videoFit);
   const canvasFormat = useStore((state) => state.canvasFormat);
   const videoBgColor = useStore((state) => state.videoBgColor);
-  const setResultVideoURL = useStore((state) => state.setResultVideoURL);
+  const resultVideoUrl = useStore((state) => state.resultVideoUrl);
+  const setResultVideoUrl = useStore((state) => state.setResultVideoUrl);
+  const setResultThumbUrl = useStore((state) => state.setResultThumbUrl);
   const setResultVideoProgress = useStore((state) => state.setResultVideoProgress);
   const openDialog = useStore((state) => state.openDialog);
+  const setDialog = useStore((state) => state.setDialog);
   const closeDialog = useStore((state) => state.closeDialog);
   const startTime = useStore((state) => state.startTime);
   const endTime = useStore((state) => state.endTime);
@@ -62,7 +66,20 @@ export function useWriteFile() {
       });
     };
     load();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!resultVideoUrl) return;
+
+    // const serverVideoHref = `http://localhost:3001/${resultVideoUrl}`;
+    const serverVideoHref = 'http://localhost:3001/download/video/output.mp4';
+
+    setDialog(() => <VideoProcessingFinishedDialog />, {
+      title: 'Rendering completed!',
+      actionButton: { title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
+      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+    });
+  }, [resultVideoUrl]);
 
   return async () => {
     openDialog(() => <VideoProgressDialog />, {
@@ -113,8 +130,8 @@ export function useWriteFile() {
     axios
       .post('/encode', formData)
       .then((res) => {
-        setResultVideoURL(res.data.newVideoUrl);
-        closeDialog();
+        setResultVideoUrl(res.data.newVideoUrl);
+        setResultThumbUrl(res.data.newThumbUrl);
       })
       .catch((e) => {
         console.error('An error occurred: ', e);
