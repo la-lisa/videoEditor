@@ -10,6 +10,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
+const { nanoid } = require("nanoid");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -53,43 +54,38 @@ const paths = {
   baseFolder: "converted",
   thumb: {
     folder: "thumbs",
-    filename: "thumb.jpg",
   },
   video: {
     folder: "videos",
-    filename: "output.mp4",
   },
 };
-const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${paths.video.filename}`;
+const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}`;
 
 const logProgress = (progress, _) => {
   io.sockets.in("sessionId").emit("uploadProgress", progress);
   console.log("Processing: " + (progress * 100).toFixed() + "% done");
 };
 
-const generateThumbnail = () => {
+const generateThumbnail = (filename) => {
   return new Promise((resolve, reject) => {
-    ffmpeg(newVideoUrl)
+    ffmpeg(`${newVideoUrl}/${filename}.mp4`)
       .screenshots({
         count: 1,
         folder: `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}`,
-        filename: paths.thumb.filename,
+        filename: `${filename}.jpg`,
         size: "200x200",
       })
       .on("error", (err) => {
         reject("An error occurred while generating thumbnail: " + err.message);
       })
-      .on("end", () => {
-        console.log("Thumbnail created!");
-      })
       .on("filenames", (filenames) => {
         console.log("Generated thumbnails: ", filenames);
-        resolve();
-      });
+      })
+      .on("end", resolve);
   });
 };
 
-const processVideo = (req, res, location, params) => {
+const processVideo = (req, res, location, filename, params) => {
   const { afOptions, vfOptions, trimTime, duration } = params;
 
   return new Promise((resolve, reject) => {
@@ -112,7 +108,7 @@ const processVideo = (req, res, location, params) => {
         }
         resolve();
       })
-      .save(newVideoUrl);
+      .save(`${newVideoUrl}/${filename}.mp4`);
   });
 };
 
@@ -133,18 +129,19 @@ app.post("/encode", upload.single("file"), (req, res) => {
       s: trimTime[1] - trimTime[0],
       ms: (trimTime[1] - trimTime[0]) * 1000,
     };
+    const filename = nanoid(12);
 
-    processVideo(req, res, uploadPath, {
+    processVideo(req, res, uploadPath, filename, {
       afOptions: afOptions,
       vfOptions: vfOptions,
       trimTime: trimTime,
       duration: duration,
     })
-      .then(() => generateThumbnail())
+      .then(() => generateThumbnail(filename))
       .then(() => {
         res.json({
-          newVideoUrl: `${paths.baseFolder}/${paths.video.folder}/${paths.video.filename}`,
-          newThumbUrl: `${paths.baseFolder}/${paths.thumb.folder}/${paths.thumb.filename}`,
+          newVideoUrl: `download/video/${filename}.mp4`,
+          newThumbUrl: `${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
         });
       })
       .catch((e) => console.error(e));

@@ -2,7 +2,7 @@ const createVideoSlice = (set, get) => ({
   video: null,
   setVideo: (video) => set({ video: video }),
   resultVideoUrl: null,
-  setResultVideoUrl: (url) => set({ resultVideoUrl: url }),
+  setResultVideoUrl: (url) => set({ resultVideoUrl: url, resultVideoProgress: {} }),
   resultThumbUrl: null,
   setResultThumbUrl: (url) => set({ resultThumbUrl: url }),
   resultVideoProgress: {},

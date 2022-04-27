@@ -71,8 +71,7 @@ export function useWriteFile() {
   useEffect(() => {
     if (!resultVideoUrl) return;
 
-    // const serverVideoHref = `http://localhost:3001/${resultVideoUrl}`;
-    const serverVideoHref = 'http://localhost:3001/download/video/output.mp4';
+    const serverVideoHref = `http://localhost:3001/${resultVideoUrl}`;
 
     setDialog(() => <VideoProcessingFinishedDialog />, {
       title: 'Rendering completed!',
