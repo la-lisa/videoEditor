@@ -103,10 +103,10 @@ const processVideo = (req, res, location, filename, params) => {
         try {
           fs.unlinkSync(location);
           //file removed
+          resolve();
         } catch (err) {
           reject(err.message);
         }
-        resolve();
       })
       .save(`${newVideoUrl}/${filename}.mp4`);
   });
