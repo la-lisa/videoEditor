@@ -10,7 +10,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const { nanoid } = require("nanoid");
+const {nanoid} = require("nanoid");
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
 const upload = multer({
   storage: multer.diskStorage({
     destination: "./server/uploads/",
-    filename: function (req, file, cb) {
+    filename: function(req, file, cb) {
       // user shortid.generate() alone if no extension is needed
       cb(null, Date.now() + path.parse(file.originalname).ext);
     },
@@ -68,25 +68,27 @@ const logProgress = (progress, _) => {
 
 const generateThumbnail = (filename) => {
   return new Promise((resolve, reject) => {
-    ffmpeg(`${newVideoUrl}/${filename}.mp4`)
-      .screenshots({
-        count: 1,
-        folder: `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}`,
-        filename: `${filename}.jpg`,
-        size: "200x200",
-      })
-      .on("error", (err) => {
-        reject("An error occurred while generating thumbnail: " + err.message);
-      })
-      .on("filenames", (filenames) => {
-        console.log("Generated thumbnails: ", filenames);
-      })
-      .on("end", resolve);
+    ffmpeg.ffprobe(`${newVideoUrl}/${filename}.mp4`, function(err, metadata) {
+      ffmpeg(`${newVideoUrl}/${filename}.mp4`)
+        .screenshots({
+          count: 1,
+          folder: `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}`,
+          filename: `${filename}.jpg`,
+          size: Math.round(metadata.streams[0].width/metadata.streams[0].height*320) + "x320",
+        })
+        .on("error", (err) => {
+          reject("An error occurred while generating thumbnail: " + err.message);
+        })
+        .on("filenames", (filenames) => {
+          console.log("Generated thumbnails: ", filenames);
+        })
+        .on("end", resolve);
+    });
   });
 };
 
 const processVideo = (req, res, location, filename, params) => {
-  const { afOptions, vfOptions, trimTime, duration } = params;
+  const {afOptions, vfOptions, trimTime, duration} = params;
 
   return new Promise((resolve, reject) => {
     ffmpeg(location)
