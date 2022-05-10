@@ -54,7 +54,13 @@ export function useWriteFile() {
   const audioVolume = useStore((state) => state.audioVolume);
 
   const handleVideoProgressDialogCancel = () => {
-    // TODO figure out how to cancel running task
+    // const socket = io('http://localhost:3001');
+    // socket.emit("killProcess");
+    axios
+      .post('/killffmpeg')
+      .catch((e) => {
+        console.error('An error occurred: ', e);
+      });
     closeDialog();
   };
 

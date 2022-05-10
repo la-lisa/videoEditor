@@ -11,6 +11,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const {nanoid} = require("nanoid");
+let videoEncoding;
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
@@ -87,11 +88,15 @@ const generateThumbnail = (filename) => {
   });
 };
 
+app.post("/killffmpeg", () => {
+  videoEncoding.kill();
+});
+
 const processVideo = (req, res, location, filename, params) => {
   const {afOptions, vfOptions, trimTime, duration} = params;
 
   return new Promise((resolve, reject) => {
-    ffmpeg(location)
+    videoEncoding = ffmpeg(location)
       .videoFilters(JSON.parse(vfOptions))
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
