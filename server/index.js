@@ -89,15 +89,20 @@ const generateThumbnail = (filename) => {
 };
 
 app.post("/killffmpeg", () => {
-  videoEncoding.kill();
+  if(videoEncoding){
+    videoEncoding.kill();
+  }
+
 });
 
 const processVideo = (req, res, location, filename, params) => {
-  const {afOptions, vfOptions, trimTime, duration} = params;
+  const {afOptions, vfOptions, trimTime, duration, adjustOptions} = params;
 
+  console.log(adjustOptions);
   return new Promise((resolve, reject) => {
     videoEncoding = ffmpeg(location)
       .videoFilters(JSON.parse(vfOptions))
+      .videoFilters(JSON.parse(adjustOptions))
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
       .audioFilter(JSON.parse(afOptions))
@@ -130,6 +135,7 @@ app.post("/encode", upload.single("file"), (req, res) => {
     const video = req.file;
     const uploadPath = video.path;
     const vfOptions = req.body.vfOptions;
+    const adjustOptions = req.body.adjustOptions;
     const trimTime = JSON.parse(req.body.trimTime);
     const afOptions = req.body.afOptions;
     const duration = {
@@ -143,6 +149,7 @@ app.post("/encode", upload.single("file"), (req, res) => {
       vfOptions: vfOptions,
       trimTime: trimTime,
       duration: duration,
+      adjustOptions: adjustOptions,
     })
       .then(() => generateThumbnail(filename))
       .then(() => {

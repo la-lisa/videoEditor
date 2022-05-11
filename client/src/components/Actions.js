@@ -32,6 +32,7 @@ import ActionItem from './ActionItem';
 import { CANVAS_FORMATS, VIDEO_FIT } from '../utils/utils';
 import useStore from '../store/useStore';
 import { ChromePicker } from 'react-color';
+import AdjustmentSliders from "./AdjustmentSliders";
 
 export default function Actions() {
   const canvasFormat = useStore((state) => state.canvasFormat);
@@ -119,18 +120,12 @@ export default function Actions() {
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
             />
-            {/*For time picking later*/}
-            {/*<Slider*/}
-            {/*    getAriaLabel={() => 'Trim video'}*/}
-            {/*    value={[20, 37]}*/}
-            {/*    //onChange={handleChange}*/}
-            {/*    valueLabelDisplay="auto"*/}
-            {/*   // getAriaValueText={valuetext}*/}
-            {/*/>*/}
           </ActionItem>
           <ActionItem Icon={() => <AlignHorizontalCenter />} title="Alignment" />
           <ActionItem Icon={() => <ZoomIn />} title="Zoom" />
-          <ActionItem Icon={() => <Contrast />} title="Adjustments" />
+          <ActionItem Icon={() => <Contrast />} title="Adjustments" >
+            <AdjustmentSliders/>
+          </ActionItem>
           <ActionItem Icon={() => <ColorLens />} title="Background">
             <ChromePicker
               disableAlpha={true}
