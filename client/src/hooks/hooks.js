@@ -60,6 +60,7 @@ export function useWriteFile() {
   const invert = useStore((state) => state.invert);
   const flipHorizontal = useStore((state) => state.flipHorizontal);
   const flipVertical = useStore((state) => state.flipVertical);
+  const zoom = useStore((state) => state.zoom);
 
   const handleVideoProgressDialogCancel = () => {
     // const socket = io('http://localhost:3001');
@@ -178,7 +179,25 @@ export function useWriteFile() {
         options: {
           sigma: `${blur}`
         }
-      }, doInvert, vflip, hflip
+      },
+      {
+       filter: 'scale',
+        options: {
+         'width': `iw * ${zoom/100 + 1}`,
+          'height' : '-1'
+        }
+      },{
+        filter: 'crop',
+        options:{
+          'w': 'iw/2',
+          'h': 'ih/2'
+        }
+      },
+      {
+        filter: 'setsar',
+        options: '1',
+      },
+      doInvert, vflip, hflip
     ];
 
     const vfOptions =
