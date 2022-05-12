@@ -19,6 +19,14 @@ const Editor = ({ onReady }, ref) => {
   const setDuration = useStore((state) => state.setDuration);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
   const setTime = useStore((state) => state.setTime);
+  const brightness = useStore((state) => state.brightness);
+  const contrast = useStore((state) => state.contrast);
+  const blur = useStore((state) => state.blur);
+  const hue = useStore((state) => state.hue);
+  const saturation = useStore((state) => state.saturation);
+  const invert = useStore((state) => state.invert);
+  const flipHorizontal = useStore((state) => state.flipHorizontal);
+  const flipVertical = useStore((state) => state.flipVertical);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -100,7 +108,7 @@ const Editor = ({ onReady }, ref) => {
               >
                 <video
                   className="video"
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: videoFit }}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: videoFit, backgroundColor: videoBgColor, transform: `rotateY: ${flipHorizontal ? 180 : 0 }deg, rotateX: ${flipVertical ? 180 : 0 }deg`, filter:`brightness(${brightness/100}) contrast(${contrast/100}) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation/100}) blur(${blur}px)` }}
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}

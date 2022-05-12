@@ -52,11 +52,65 @@ export function useWriteFile() {
   const endTime = useStore((state) => state.endTime);
   const muteAudio = useStore((state) => state.muteAudio);
   const audioVolume = useStore((state) => state.audioVolume);
+  const brightness = useStore((state) => state.brightness);
+  const contrast = useStore((state) => state.contrast);
+  const blur = useStore((state) => state.blur);
+  const hue = useStore((state) => state.hue);
+  const saturation = useStore((state) => state.saturation);
+  const invert = useStore((state) => state.invert);
+  const flipHorizontal = useStore((state) => state.flipHorizontal);
+  const flipVertical = useStore((state) => state.flipVertical);
 
   const handleVideoProgressDialogCancel = () => {
-    // TODO figure out how to cancel running task
+    // const socket = io('http://localhost:3001');
+    // socket.emit("killProcess");
+    axios
+      .post('/killffmpeg')
+      .catch((e) => {
+        console.error('An error occurred: ', e);
+      });
     closeDialog();
   };
+
+  const shiftValuesBrightness = (value) => {
+    if (value === 100){
+      return 0;
+    }
+    if(value > 100){
+      return value/500
+    }
+
+    if(value < 100){
+      return value/100 - 1;
+    }
+
+  }
+
+  const shiftValuesContrast = (value) => {
+    if(value === 100){
+      return 1;
+    }
+    if(value > 100){
+      return ((999*(value-100))/400) + 1;
+    }
+    if(value < 100){
+      return ((1001*value)/100) - 1000;
+    }
+
+  }
+
+  const shiftValuesSaturation = (value) =>{
+    if(value === 100){
+      return 1;
+    }
+    if (value > 100){
+      return ((2* (value - 100))/400) + 1;
+    }
+    if(value < 100){
+      return value/100;
+    }
+
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -85,6 +139,47 @@ export function useWriteFile() {
       title: 'Rendering...',
       cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
     });
+
+    const vflip = flipVertical ? {
+      filter: "vflip"
+    } : {
+      filter: "curves"
+    };
+
+    const hflip = flipHorizontal ? {
+      filter: "hflip"
+    } : {
+      filter: "curves"
+    };
+
+    const doInvert = invert ? {
+      filter: "negate"
+    } : {
+      filter: "curves"
+    };
+
+    const adjustmentOptions = [
+      {
+        filter: 'eq',
+        options: {
+          brightness: `${shiftValuesBrightness(brightness)}`,
+          contrast: `${shiftValuesContrast(contrast)}`,
+          saturation: `${shiftValuesSaturation(saturation)}`
+        }
+      },
+      {
+        filter: 'hue',
+        options: {
+          h: `${hue}`
+        }
+      },
+      {
+        filter: 'gblur',
+        options: {
+          sigma: `${blur}`
+        }
+      }, doInvert, vflip, hflip
+    ];
 
     const vfOptions =
       videoFit === VIDEO_FIT._COVER
@@ -126,6 +221,7 @@ export function useWriteFile() {
     formData.append('trimTime', JSON.stringify([secondsStart, secondsEnd]));
     formData.append('vfOptions', JSON.stringify(vfOptions));
     formData.append('afOptions', JSON.stringify(audioOptions));
+    formData.append('adjustOptions', JSON.stringify(adjustmentOptions))
     axios
       .post('/encode', formData)
       .then((res) => {
