@@ -144,7 +144,6 @@ const Editor = ({ onReady }, ref) => {
                     width: '100%',
                     height: '100%',
                     objectFit: videoFit,
-                    backgroundColor: videoBgColor,
                     transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg)`,
                     filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) hue-rotate(${hue}deg) invert(${
                       invert ? 100 : 0
