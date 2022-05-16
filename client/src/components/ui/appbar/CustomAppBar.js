@@ -9,6 +9,7 @@ import {
   ThemeProvider,
   Toolbar,
   Typography,
+  useTheme,
 } from '@mui/material';
 import { ReactComponent as Logo } from '../../../assets/logo.svg';
 import UndoRedoButtons from './UndoRedoButtons';
@@ -18,6 +19,7 @@ import { useWriteFile } from '../../../hooks/hooks';
 
 export default function CustomAppBar({ videoReady }) {
   const writeFile = useWriteFile();
+  const theme = useTheme();
 
   const showButtons = useStore((state) => state.canvasFormatChosen);
 
@@ -39,7 +41,7 @@ export default function CustomAppBar({ videoReady }) {
     });
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ position: 'absolute', top: 0, right: 0, left: 0, height: theme.spacing(8) }}>
       <AppBar position="static" color="primary" enableColorOnDark>
         <Toolbar>
           <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} flexGrow={1}>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
 import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
@@ -36,6 +36,23 @@ export function useEventListener(eventName, handler, element = window) {
   );
 }
 
+export function useDimensionChange(handler) {
+  const [node, setNode] = useState();
+  const ref = useCallback((node) => {
+    setNode(node);
+  }, []);
+
+  useEffect(() => {
+    if (node) {
+      const resizeObserver = new ResizeObserver(([resizeObserverEntry]) => handler(resizeObserverEntry.contentRect));
+      resizeObserver.observe(node);
+      return () => resizeObserver.unobserve(node);
+    }
+  }, [node]);
+
+  return ref;
+}
+
 export function useWriteFile() {
   const video = useStore((state) => state.video);
   const videoFit = useStore((state) => state.videoFit);
@@ -64,53 +81,47 @@ export function useWriteFile() {
   const handleVideoProgressDialogCancel = () => {
     // const socket = io('http://localhost:3001');
     // socket.emit("killProcess");
-    axios
-      .post('/killffmpeg')
-      .catch((e) => {
-        console.error('An error occurred: ', e);
-      });
+    axios.post('/killffmpeg').catch((e) => {
+      console.error('An error occurred: ', e);
+    });
     closeDialog();
   };
 
   const shiftValuesBrightness = (value) => {
-    if (value === 100){
+    if (value === 100) {
       return 0;
     }
-    if(value > 100){
-      return value/500
+    if (value > 100) {
+      return value / 500;
     }
-
-    if(value < 100){
-      return value/100 - 1;
+    if (value < 100) {
+      return value / 100 - 1;
     }
-
-  }
+  };
 
   const shiftValuesContrast = (value) => {
-    if(value === 100){
+    if (value === 100) {
       return 1;
     }
-    if(value > 100){
-      return ((999*(value-100))/400) + 1;
+    if (value > 100) {
+      return (999 * (value - 100)) / 400 + 1;
     }
-    if(value < 100){
-      return ((1001*value)/100) - 1000;
+    if (value < 100) {
+      return (1001 * value) / 100 - 1000;
     }
+  };
 
-  }
-
-  const shiftValuesSaturation = (value) =>{
-    if(value === 100){
+  const shiftValuesSaturation = (value) => {
+    if (value === 100) {
       return 1;
     }
-    if (value > 100){
-      return ((2* (value - 100))/400) + 1;
+    if (value > 100) {
+      return (2 * (value - 100)) / 400 + 1;
     }
-    if(value < 100){
-      return value/100;
+    if (value < 100) {
+      return value / 100;
     }
-
-  }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -140,23 +151,29 @@ export function useWriteFile() {
       cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
     });
 
-    const vflip = flipVertical ? {
-      filter: "vflip"
-    } : {
-      filter: "curves"
-    };
+    const vflip = flipVertical
+      ? {
+          filter: 'vflip',
+        }
+      : {
+          filter: 'curves',
+        };
 
-    const hflip = flipHorizontal ? {
-      filter: "hflip"
-    } : {
-      filter: "curves"
-    };
+    const hflip = flipHorizontal
+      ? {
+          filter: 'hflip',
+        }
+      : {
+          filter: 'curves',
+        };
 
-    const doInvert = invert ? {
-      filter: "negate"
-    } : {
-      filter: "curves"
-    };
+    const doInvert = invert
+      ? {
+          filter: 'negate',
+        }
+      : {
+          filter: 'curves',
+        };
 
     const adjustmentOptions = [
       {
@@ -164,21 +181,24 @@ export function useWriteFile() {
         options: {
           brightness: `${shiftValuesBrightness(brightness)}`,
           contrast: `${shiftValuesContrast(contrast)}`,
-          saturation: `${shiftValuesSaturation(saturation)}`
-        }
+          saturation: `${shiftValuesSaturation(saturation)}`,
+        },
       },
       {
         filter: 'hue',
         options: {
-          h: `${hue}`
-        }
+          h: `${hue}`,
+        },
       },
       {
         filter: 'gblur',
         options: {
-          sigma: `${blur}`
-        }
-      }, doInvert, vflip, hflip
+          sigma: `${blur}`,
+        },
+      },
+      doInvert,
+      vflip,
+      hflip,
     ];
 
     const vfOptions =
@@ -221,7 +241,7 @@ export function useWriteFile() {
     formData.append('trimTime', JSON.stringify([secondsStart, secondsEnd]));
     formData.append('vfOptions', JSON.stringify(vfOptions));
     formData.append('afOptions', JSON.stringify(audioOptions));
-    formData.append('adjustOptions', JSON.stringify(adjustmentOptions))
+    formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
     axios
       .post('/encode', formData)
       .then((res) => {

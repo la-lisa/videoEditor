@@ -1,11 +1,12 @@
 import Editor from './Editor.js';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Box, Container, CssBaseline, Stack } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { Box, Container, CssBaseline } from '@mui/material';
 import Actions from './Actions';
 import ModalDialog from './ui/dialogs/ModalDialog';
 import CustomAppBar from './ui/appbar/CustomAppBar';
 import { useRef, useState } from 'react';
 import Timeline from './Timeline';
+import composeGlobalTheme from './ui/theme/globalTheme';
 
 export default function App() {
   const [videoReady, setVideoReady] = useState(false);
@@ -15,27 +16,36 @@ export default function App() {
     setVideoReady(true);
   };
 
-  const theme = createTheme({
-    palette: {
-      mode: 'dark',
-    },
-  });
+  const theme = composeGlobalTheme();
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ height: '100%' }}>
+      <Box sx={{ height: '100%', position: 'relative' }}>
         <CssBaseline />
         <CustomAppBar videoReady={videoReady} />
-        <Container className="App" maxWidth="lg" sx={{ height: '100%', pt: 8 }}>
-          <Stack spacing={2}>
-            <Stack direction="row" spacing={4}>
-              <Editor ref={videoElemRef} onReady={handleVideoReady} />
-              {videoReady && <Actions />}
-            </Stack>
-            {videoReady && <Timeline ref={videoElemRef} />}
-          </Stack>
+        <Box
+          className="App"
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            left: 0,
+            height: '100%',
+            width: '100%',
+            pt: 12,
+            pb: '180px',
+          }}
+        >
+          <Container maxWidth="xl" sx={{ display: 'flex', height: '100%' }}>
+            <Editor ref={videoElemRef} onReady={handleVideoReady} />
+            {videoReady && <Actions />}
+          </Container>
+          {videoReady && <Timeline ref={videoElemRef} />}
           <ModalDialog />
-        </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );
