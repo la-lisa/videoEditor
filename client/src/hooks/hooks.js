@@ -244,7 +244,7 @@ export function useWriteFile() {
         ? {
           filter: 'crop',
           options: {
-            w: `ih*${canvasFormat}`,
+            w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
             h: 'ih',
             x: `${ getXPos() }`,
             y: `${ getYPos() }`
@@ -254,8 +254,8 @@ export function useWriteFile() {
           {
             filter: 'pad',
             options: {
-              w: `max(iw\\,ih*(${canvasFormat}))`,
-              h: `ow/(${canvasFormat})`,
+              w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
+              h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
               x: `${ getXPos() }`,
               y: `${ getYPos() }`,
               color: `${videoBgColor}`,
