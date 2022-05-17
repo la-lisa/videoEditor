@@ -13,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { useCallback, useState } from 'react';
+import {useCallback, useState} from 'react';
 import {
   AlignHorizontalCenter,
   AspectRatio,
@@ -29,9 +29,9 @@ import {
 } from '@mui/icons-material';
 import styles from './Actions.module.css';
 import ActionItem from './ActionItem';
-import { CANVAS_FORMATS, VIDEO_FIT } from '../utils/utils';
+import {CANVAS_FORMATS, VIDEO_FIT, VIDEO_ALIGN} from '../utils/utils';
 import useStore from '../store/useStore';
-import { ChromePicker } from 'react-color';
+import {ChromePicker} from 'react-color';
 import AdjustmentSliders from "./AdjustmentSliders";
 
 export default function Actions() {
@@ -48,6 +48,10 @@ export default function Actions() {
   const setMuteAudio = useStore((state) => state.setMuteAudio);
   const audioVolume = useStore((state) => state.audioVolume);
   const setAudioVolume = useStore((state) => state.setAudioVolume);
+  const zoom = useStore((state) => state.zoom);
+  const setZoom = useStore((state) => state.setZoom);
+  const videoAlign = useStore((state) => state.videoAlign);
+  const setVideoAlign = useStore((state) => state.setVideoAlign);
   const [isOpen, setIsOpen] = useState(false);
   const [tempColor, setTempColor] = useState(videoBgColor);
 
@@ -71,11 +75,11 @@ export default function Actions() {
 
   return (
     <Paper elevation={1}>
-      <Stack direction="row" sx={{ justifyContent: 'flex-end', height: '100%', width: '100%' }}>
+      <Stack direction="row" sx={{justifyContent: 'flex-end', height: '100%', width: '100%'}}>
         <Stack
           spacing={2}
           className={`${styles.actionsPanel} ${isOpen ? `${styles.open}` : `${styles.collapsed}`}`}
-          sx={isOpen ? { padding: 2 } : {}}
+          sx={isOpen ? {padding: 2} : {}}
         >
           <ActionItem Icon={() => <AspectRatio />} title="Aspect Ratio">
             {Object.keys(CANVAS_FORMATS).map((key) => {
@@ -83,7 +87,7 @@ export default function Actions() {
                 <MenuItem key={`menuItem-${key}`} onClick={() => setCanvasFormat(key)} selected={canvasFormat === key}>
                   <Stack direction="row" spacing={1}>
                     <ListItemIcon>
-                      <QuestionMark fontSize="small" />
+                      <QuestionMark fontSize="small"/>
                     </ListItemIcon>
                     <ListItemText>{CANVAS_FORMATS[key].title}</ListItemText>
                   </Stack>
@@ -91,13 +95,13 @@ export default function Actions() {
               );
             })}
           </ActionItem>
-          <ActionItem Icon={() => <FitScreen />} title="Video Fit">
+          <ActionItem Icon={() => <FitScreen/>} title="Video Fit">
             {Object.values(VIDEO_FIT).map((videoFit) => {
               return (
                 <MenuItem key={videoFit} onClick={() => setVideoFit(videoFit)}>
                   <Stack direction="row" spacing={1}>
                     <ListItemIcon>
-                      <QuestionMark fontSize="small" />
+                      <QuestionMark fontSize="small"/>
                     </ListItemIcon>
                     <ListItemText>{videoFit}</ListItemText>
                   </Stack>
@@ -105,7 +109,7 @@ export default function Actions() {
               );
             })}
           </ActionItem>
-          <ActionItem Icon={() => <AvTimer />} title="Trim">
+          <ActionItem Icon={() => <AvTimer/>} title="Trim">
             <TextField
               id="start"
               label="Starting Time"
@@ -121,12 +125,39 @@ export default function Actions() {
               onChange={(e) => setEndTime(e.target.value)}
             />
           </ActionItem>
-          <ActionItem Icon={() => <AlignHorizontalCenter />} title="Alignment" />
-          <ActionItem Icon={() => <ZoomIn />} title="Zoom" />
-          <ActionItem Icon={() => <Contrast />} title="Adjustments" >
+          <ActionItem Icon={() => <AlignHorizontalCenter/>} title="Alignment">
+            {Object.values(VIDEO_ALIGN).map((align) => {
+              return (
+                <MenuItem key={align} onClick={() => setVideoAlign(align)} selected={videoAlign === align}>
+                  <Stack direction="row" spacing={1}>
+                    <ListItemIcon>
+                      <QuestionMark fontSize="small"/>
+                    </ListItemIcon>
+                    <ListItemText>{align}</ListItemText>
+                  </Stack>
+                </MenuItem>
+              );
+            })}
+          </ActionItem>
+          <ActionItem Icon={() => <ZoomIn/>} title="Zoom">
+            <Box sx={{width: 200, height: "auto", padding: 3}}>
+              <Typography gutterBottom>Zoom</Typography>
+              <Slider
+                aria-label="Zoom %"
+                onChange={(e) => setZoom(e.target.value)}
+                defaultValue={0}
+                valueLabelDisplay="auto"
+                value={zoom}
+                step={1}
+                min={-100}
+                max={100}
+              />
+            </Box>
+          </ActionItem>
+          <ActionItem Icon={() => <Contrast/>} title="Adjustments">
             <AdjustmentSliders/>
           </ActionItem>
-          <ActionItem Icon={() => <ColorLens />} title="Background">
+          <ActionItem Icon={() => <ColorLens/>} title="Background">
             <ChromePicker
               disableAlpha={true}
               color={tempColor}
@@ -134,41 +165,40 @@ export default function Actions() {
               onChangeComplete={setVideoBgColor(tempColor)}
             />
           </ActionItem>
-          <ActionItem Icon={() => <VolumeUp />} title="Volume">
-            <Box sx={{ width: 150, height: 70 }}>
+          <ActionItem Icon={() => <VolumeUp/>} title="Volume">
+            <Box sx={{width: 200, height: "auto", padding: 3}}>
+              <Typography gutterBottom>Volume</Typography>
               <Slider
                 aria-label="Volume %"
                 onChange={handleAudio}
                 defaultValue={100}
                 valueLabelDisplay="auto"
                 value={audioVolume}
-                step={10}
-                marks
+                step={1}
                 min={10}
                 max={150}
-                sx={{ top: 25 }}
               />
             </Box>
           </ActionItem>
-          <ActionItem Icon={() => <VolumeOff />} title="Mute">
+          <ActionItem Icon={() => <VolumeOff/>} title="Mute">
             <FormGroup>
               <FormControlLabel
-                control={<Switch onChange={handleMute} checked={muteAudio} color="primary" />}
+                control={<Switch onChange={handleMute} checked={muteAudio} color="primary"/>}
                 label="Audio Off"
                 labelPlacement="top"
               />
             </FormGroup>
           </ActionItem>
         </Stack>
-        <Box sx={{ writingMode: 'tb', cursor: 'pointer' }} onClick={toggleActions}>
-          <Stack direction="row" sx={{ padding: 1 }}>
+        <Box sx={{writingMode: 'tb', cursor: 'pointer'}} onClick={toggleActions}>
+          <Stack direction="row" sx={{padding: 1}}>
             <ExpandMore
               sx={{
                 transition: `all ${theme.transitions.duration.short}ms`,
                 transform: isOpen ? 'rotate(-90deg)' : 'rotate(90deg)',
               }}
             />
-            <Typography sx={{ marginTop: 1, userSelect: 'none' }}>Actions</Typography>
+            <Typography sx={{marginTop: 1, userSelect: 'none'}}>Actions</Typography>
           </Stack>
         </Box>
       </Stack>

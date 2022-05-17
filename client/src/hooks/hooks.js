@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
-import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT } from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT, VIDEO_ALIGN } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
@@ -77,13 +77,15 @@ export function useWriteFile() {
   const invert = useStore((state) => state.invert);
   const flipHorizontal = useStore((state) => state.flipHorizontal);
   const flipVertical = useStore((state) => state.flipVertical);
+  const zoom = useStore((state) => state.zoom);
+  const videoAlign = useStore((state) => state.videoAlign);
 
   const handleVideoProgressDialogCancel = () => {
-    // const socket = io('http://localhost:3001');
-    // socket.emit("killProcess");
-    axios.post('/killffmpeg').catch((e) => {
-      console.error('An error occurred: ', e);
-    });
+    axios
+      .post('/killffmpeg')
+      .catch((e) => {
+        console.error('An error occurred: ', e);
+      });
     closeDialog();
   };
 
@@ -122,6 +124,27 @@ export function useWriteFile() {
       return value / 100;
     }
   };
+
+  const getYPos = () => {
+    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT  ){
+      return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
+    } else if (videoAlign === VIDEO_ALIGN._BOTTOM){
+      return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
+    } else {
+      return '0';
+    }
+  }
+
+
+  const getXPos = () => {
+    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM  ){
+      return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
+    } else if (videoAlign === VIDEO_ALIGN._RIGHT){
+      return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
+    } else {
+      return '0';
+    }
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -193,32 +216,49 @@ export function useWriteFile() {
       {
         filter: 'gblur',
         options: {
-          sigma: `${blur}`,
-        },
+          sigma: `${blur}`
+        }
       },
-      doInvert,
-      vflip,
-      hflip,
+      {
+       filter: 'scale',
+        options: {
+         'width': `iw * ${zoom/100 + 1}`,
+          'height' : '-1'
+        }
+      },{
+        filter: 'crop',
+        options:{
+          'w': 'iw/2',
+          'h': 'ih/2'
+        }
+      },
+      {
+        filter: 'setsar',
+        options: '1',
+      },
+      doInvert, vflip, hflip
     ];
 
     const vfOptions =
       videoFit === VIDEO_FIT._COVER
         ? {
-            filter: 'crop',
-            options: {
-              w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
-              h: 'ih',
-            },
-          }
+          filter: 'crop',
+          options: {
+            w: `ih*${canvasFormat}`,
+            h: 'ih',
+            x: `${ getXPos() }`,
+            y: `${ getYPos() }`
+          },
+        }
         : [
-            {
-              filter: 'pad',
-              options: {
-                w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
-                h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
-                x: '(ow-iw)/2',
-                y: '(oh-ih)/2',
-                color: `${videoBgColor}`,
+          {
+            filter: 'pad',
+            options: {
+              w: `max(iw\\,ih*(${canvasFormat}))`,
+              h: `ow/(${canvasFormat})`,
+              x: `${ getXPos() }`,
+              y: `${ getYPos() }`,
+              color: `${videoBgColor}`,
               },
             },
             {
