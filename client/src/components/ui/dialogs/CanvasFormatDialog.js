@@ -15,13 +15,13 @@ export default function CanvasFormatDialog() {
     <Grid container className="canvas-formats" alignItems="center" justifyContent="center">
       <FormControl>
         <RadioGroup aria-label="Canvas Formats Radio Buttons" onChange={handleListItemClick} value={format} row>
-          {Object.keys(CANVAS_FORMATS).map((format) => {
+          {Object.keys(CANVAS_FORMATS).map((key) => {
             return (
               <FormControlLabel
-                key={format}
-                value={CANVAS_FORMATS[format]}
+                key={key}
+                value={key}
                 control={<Radio />}
-                label={CANVAS_FORMATS[format]}
+                label={CANVAS_FORMATS[key].title}
                 labelPlacement="top"
               />
             );

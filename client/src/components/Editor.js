@@ -1,10 +1,11 @@
-import { forwardRef, useCallback, useEffect, useMemo } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Grid, Stack, useTheme } from '@mui/material';
 import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
-import { useEventListener } from '../hooks/hooks';
+import { useDimensionChange, useEventListener } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import { DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
+import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
 
 const Editor = ({ onReady }, ref) => {
   const video = useStore((state) => state.video);
@@ -32,7 +33,31 @@ const Editor = ({ onReady }, ref) => {
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
+
   const theme = useTheme();
+
+  const Y_SPACING = 276; // div.App padding-top + padding-bottom
+  const [maxHeight, setMaxHeight] = useState(window.innerHeight - Y_SPACING);
+  const [maxWidth, setMaxWidth] = useState(0);
+
+  const onWindowResizeHandler = useThrottledCallback(
+    () => {
+      setMaxHeight(window.innerHeight - Y_SPACING);
+    },
+    [setMaxHeight],
+    50
+  );
+
+  const onVideoContainerResizeHandler = useThrottledCallback(
+    (contentRect) => {
+      setMaxWidth(contentRect.width);
+    },
+    [setMaxWidth],
+    50
+  );
+
+  const dimensionsRef = useDimensionChange(onVideoContainerResizeHandler);
+  useWindowResize(onWindowResizeHandler);
 
   const handleCanvasFormatDialogAction = () => {
     setCanvasFormatChosen(true);
@@ -83,19 +108,29 @@ const Editor = ({ onReady }, ref) => {
     if (showVideo === true && onReady) onReady();
   }, [showVideo, onReady]);
 
+  const [width, height] = useMemo(() => {
+    if (!maxWidth || !maxHeight || !canvasFormat) return [0, 0];
+    // try to use full width first
+    if ((maxWidth * CANVAS_FORMATS[canvasFormat].y) / CANVAS_FORMATS[canvasFormat].x <= maxHeight) {
+      return [maxWidth, (maxWidth * CANVAS_FORMATS[canvasFormat].y) / CANVAS_FORMATS[canvasFormat].x];
+    } else {
+      return [maxHeight * (CANVAS_FORMATS[canvasFormat].x / CANVAS_FORMATS[canvasFormat].y), maxHeight];
+    }
+  }, [maxWidth, maxHeight, canvasFormat]);
+
   return (
-    <Grid container align="center" justifyContent="center" spacing={2}>
-      <Grid item align="center" xs={12} lg={8}>
-        <Stack spacing={1}>
+    <Grid container align="center" justifyContent="center">
+      <Grid ref={dimensionsRef} item align="center" xs={12} lg={8}>
+        <Stack spacing={1} sx={{ height: '100%' }}>
           {showVideo ? (
             <>
               <Box
                 className="videoWrapper"
-                style={{ aspectRatio: canvasFormat }}
                 sx={{
+                  position: 'relative',
                   alignSelf: 'center',
-                  height: '60vh',
-                  maxWidth: '100%',
+                  width: width,
+                  height: height,
                   border: theme.spacing(0.25),
                   borderColor: theme.palette.primary.dark,
                   borderStyle: 'dashed',
@@ -104,7 +139,19 @@ const Editor = ({ onReady }, ref) => {
               >
                 <video
                   className="video"
-                  style={{ width: '100%', height: '100%', objectFit: videoFit, objectPosition:videoAlign, backgroundColor: videoBgColor, transform: `rotateY(${flipHorizontal ? 180 : 0 }deg) rotateX(${flipVertical ? 180 : 0 }deg) scale(${zoom/100 + 1})` ,filter:`brightness(${brightness/100}) contrast(${contrast/100}) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation/100}) blur(${blur}px)` }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: videoFit,
+                    objectPosition:videoAlign,
+                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${zoom/100 + 1})`,
+                    filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) hue-rotate(${hue}deg) invert(${
+                      invert ? 100 : 0
+                    }%) saturate(${saturation / 100}) blur(${blur}px)`,
+                  }}
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}

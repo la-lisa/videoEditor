@@ -1,5 +1,6 @@
 .actionsPanel {
     overflow: hidden;
+    overflow-y: auto;
 }
 
 .collapsed {

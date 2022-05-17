@@ -81,15 +81,15 @@ export default function Actions() {
           className={`${styles.actionsPanel} ${isOpen ? `${styles.open}` : `${styles.collapsed}`}`}
           sx={isOpen ? {padding: 2} : {}}
         >
-          <ActionItem Icon={() => <AspectRatio/>} title="Aspect Ratio">
-            {Object.values(CANVAS_FORMATS).map((format) => {
+          <ActionItem Icon={() => <AspectRatio />} title="Aspect Ratio">
+            {Object.keys(CANVAS_FORMATS).map((key) => {
               return (
-                <MenuItem key={format} onClick={() => setCanvasFormat(format)} selected={canvasFormat === format}>
+                <MenuItem key={`menuItem-${key}`} onClick={() => setCanvasFormat(key)} selected={canvasFormat === key}>
                   <Stack direction="row" spacing={1}>
                     <ListItemIcon>
                       <QuestionMark fontSize="small"/>
                     </ListItemIcon>
-                    <ListItemText>{format}</ListItemText>
+                    <ListItemText>{CANVAS_FORMATS[key].title}</ListItemText>
                   </Stack>
                 </MenuItem>
               );
