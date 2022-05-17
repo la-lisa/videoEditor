@@ -28,6 +28,7 @@ const Editor = ({ onReady }, ref) => {
   const flipHorizontal = useStore((state) => state.flipHorizontal);
   const flipVertical = useStore((state) => state.flipVertical);
   const zoom = useStore((state) => state.zoom);
+  const videoAlign = useStore((state) => state.videoAlign);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -103,7 +104,7 @@ const Editor = ({ onReady }, ref) => {
               >
                 <video
                   className="video"
-                  style={{ width: '100%', height: '100%', objectFit: videoFit, backgroundColor: videoBgColor, transform: `rotateY: ${flipHorizontal ? 180 : 0 }deg rotateX: ${flipVertical ? 180 : 0 }deg scale: ${zoom/100 + 1}` ,filter:`brightness(${brightness/100}) contrast(${contrast/100}) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation/100}) blur(${blur}px)` }}
+                  style={{ width: '100%', height: '100%', objectFit: videoFit, objectPosition:videoAlign, backgroundColor: videoBgColor, transform: `rotateY(${flipHorizontal ? 180 : 0 }deg) rotateX(${flipVertical ? 180 : 0 }deg) scale(${zoom/100 + 1})` ,filter:`brightness(${brightness/100}) contrast(${contrast/100}) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) saturate(${saturation/100}) blur(${blur}px)` }}
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}

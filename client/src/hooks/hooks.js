@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
-import {DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT} from '../utils/utils';
+import {DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT, VIDEO_ALIGN} from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
@@ -61,10 +61,9 @@ export function useWriteFile() {
   const flipHorizontal = useStore((state) => state.flipHorizontal);
   const flipVertical = useStore((state) => state.flipVertical);
   const zoom = useStore((state) => state.zoom);
+  const videoAlign = useStore((state) => state.videoAlign);
 
   const handleVideoProgressDialogCancel = () => {
-    // const socket = io('http://localhost:3001');
-    // socket.emit("killProcess");
     axios
       .post('/killffmpeg')
       .catch((e) => {
@@ -111,6 +110,27 @@ export function useWriteFile() {
       return value/100;
     }
 
+  }
+
+  const getYPos = () => {
+    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT  ){
+      return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
+    } else if (videoAlign === VIDEO_ALIGN._BOTTOM){
+      return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
+    } else {
+      return '0';
+    }
+  }
+
+
+  const getXPos = () => {
+    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM  ){
+      return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
+    } else if (videoAlign === VIDEO_ALIGN._RIGHT){
+      return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
+    } else {
+      return '0';
+    }
   }
 
   useEffect(() => {
@@ -207,6 +227,8 @@ export function useWriteFile() {
           options: {
             w: `ih*${canvasFormat}`,
             h: 'ih',
+            x: `${ getXPos() }`,
+            y: `${ getYPos() }`
           },
         }
         : [
@@ -215,8 +237,8 @@ export function useWriteFile() {
             options: {
               w: `max(iw\\,ih*(${canvasFormat}))`,
               h: `ow/(${canvasFormat})`,
-              x: '(ow-iw)/2',
-              y: '(oh-ih)/2',
+              x: `${ getXPos() }`,
+              y: `${ getYPos() }`,
               color: `${videoBgColor}`,
             },
           },

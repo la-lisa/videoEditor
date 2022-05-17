@@ -11,6 +11,7 @@ export const VIDEO_FIT = {
 };
 
 export const VIDEO_ALIGN = {
+  _CENTER: 'center',
   _TOP: 'top',
   _BOTTOM: 'bottom',
   _LEFT: 'left',
