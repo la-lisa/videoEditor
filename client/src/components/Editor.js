@@ -48,12 +48,11 @@ const Editor = ({ onReady }, ref) => {
     50
   );
 
-  const onVideoContainerResizeHandler = useThrottledCallback(
+  const onVideoContainerResizeHandler = useCallback(
     (contentRect) => {
       setMaxWidth(contentRect.width);
     },
-    [setMaxWidth],
-    50
+    [setMaxWidth]
   );
 
   const dimensionsRef = useDimensionChange(onVideoContainerResizeHandler);
@@ -120,7 +119,7 @@ const Editor = ({ onReady }, ref) => {
 
   return (
     <Grid container align="center" justifyContent="center">
-      <Grid ref={dimensionsRef} item align="center" xs={12} lg={8}>
+      <Grid ref={dimensionsRef} item align="center" xs={10} lg={8}>
         <Stack spacing={1} sx={{ height: '100%' }}>
           {showVideo ? (
             <>
