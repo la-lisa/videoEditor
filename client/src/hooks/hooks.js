@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
-import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_SAVE_BUTTON_TITLE, VIDEO_FIT, VIDEO_ALIGN } from '../utils/utils';
+import {
+  CANVAS_FORMATS,
+  DIALOG_CANCEL_BUTTON_TITLE,
+  DIALOG_SAVE_BUTTON_TITLE,
+  VIDEO_FIT,
+  VIDEO_ALIGN
+} from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
@@ -89,15 +95,21 @@ export function useWriteFile() {
     closeDialog();
   };
 
-  const shiftValuesBrightness = (value) => {
-    if (value === 100) {
-      return 0;
+  const shiftValuesBrightnessLight = (value) => {
+    if (value <= 100) {
+      return 1;
     }
     if (value > 100) {
-      return value / 500;
+      return 1.01 - (value - 100) / 200;
+    }
+  };
+
+  const shiftValuesBrightnessDark = (value) => {
+    if (value >= 100) {
+      return 1;
     }
     if (value < 100) {
-      return value / 100 - 1;
+      return value / 100;
     }
   };
 
@@ -106,10 +118,10 @@ export function useWriteFile() {
       return 1;
     }
     if (value > 100) {
-      return (999 * (value - 100)) / 400 + 1;
+      return value / 100;
     }
     if (value < 100) {
-      return (1001 * value) / 100 - 1000;
+      return value / 100;
     }
   };
 
@@ -118,7 +130,7 @@ export function useWriteFile() {
       return 1;
     }
     if (value > 100) {
-      return (2 * (value - 100)) / 400 + 1;
+      return (2 * (value - 100)) / 200 + 1;
     }
     if (value < 100) {
       return value / 100;
@@ -126,9 +138,9 @@ export function useWriteFile() {
   };
 
   const getYPos = () => {
-    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT  ){
+    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT) {
       return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
-    } else if (videoAlign === VIDEO_ALIGN._BOTTOM){
+    } else if (videoAlign === VIDEO_ALIGN._BOTTOM) {
       return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
     } else {
       return '0';
@@ -137,9 +149,9 @@ export function useWriteFile() {
 
 
   const getXPos = () => {
-    if(videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM  ){
+    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
       return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
-    } else if (videoAlign === VIDEO_ALIGN._RIGHT){
+    } else if (videoAlign === VIDEO_ALIGN._RIGHT) {
       return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
     } else {
       return '0';
@@ -161,82 +173,80 @@ export function useWriteFile() {
 
     const serverVideoHref = `http://localhost:3001/${resultVideoUrl}`;
 
-    setDialog(() => <VideoProcessingFinishedDialog />, {
+    setDialog(() => <VideoProcessingFinishedDialog/>, {
       title: 'Rendering completed!',
-      actionButton: { title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
-      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+      actionButton: {title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true},
+      cancelButton: {title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel},
     });
   }, [resultVideoUrl]);
 
   return async () => {
-    openDialog(() => <VideoProgressDialog />, {
+    openDialog(() => <VideoProgressDialog/>, {
       title: 'Rendering...',
-      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+      cancelButton: {title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel},
     });
 
     const vflip = flipVertical
       ? {
-          filter: 'vflip',
-        }
+        filter: 'vflip',
+      }
       : {
-          filter: 'curves',
-        };
+        filter: 'curves',
+      };
 
     const hflip = flipHorizontal
       ? {
-          filter: 'hflip',
-        }
+        filter: 'hflip',
+      }
       : {
-          filter: 'curves',
-        };
+        filter: 'curves',
+      };
 
     const doInvert = invert
       ? {
-          filter: 'negate',
-        }
+        filter: 'negate',
+      }
       : {
-          filter: 'curves',
-        };
+        filter: 'curves',
+      };
 
     const adjustmentOptions = [
       {
         filter: 'eq',
         options: {
-          brightness: `${shiftValuesBrightness(brightness)}`,
-          contrast: `${shiftValuesContrast(contrast)}`,
-          saturation: `${shiftValuesSaturation(saturation)}`,
+          contrast: shiftValuesContrast(contrast),
         },
+      },
+      {
+        filter: 'eq',
+        options: {
+          saturation: shiftValuesSaturation(saturation),
+        },
+      },
+      {
+        filter: 'colorlevels',
+        options: {
+          rimax: shiftValuesBrightnessLight(brightness),
+          gimax: shiftValuesBrightnessLight(brightness),
+          bimax: shiftValuesBrightnessLight(brightness),
+          romax: shiftValuesBrightnessDark(brightness),
+          gomax: shiftValuesBrightnessDark(brightness),
+          bomax: shiftValuesBrightnessDark(brightness),
+        }
       },
       {
         filter: 'hue',
         options: {
           h: `${hue}`,
         },
-      },
+      }, doInvert,
       {
         filter: 'gblur',
         options: {
           sigma: `${blur}`
         }
       },
-      {
-       filter: 'scale',
-        options: {
-         'width': `iw * ${zoom/100 + 1}`,
-          'height' : '-1'
-        }
-      },{
-        filter: 'crop',
-        options:{
-          'w': 'iw/2',
-          'h': 'ih/2'
-        }
-      },
-      {
-        filter: 'setsar',
-        options: '1',
-      },
-      doInvert, vflip, hflip
+      vflip, hflip
     ];
 
     const vfOptions =
@@ -246,8 +256,8 @@ export function useWriteFile() {
           options: {
             w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
             h: 'ih',
-            x: `${ getXPos() }`,
-            y: `${ getYPos() }`
+            x: `${getXPos()}`,
+            y: `${getYPos()}`
           },
         }
         : [
@@ -256,16 +266,16 @@ export function useWriteFile() {
             options: {
               w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
               h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
-              x: `${ getXPos() }`,
-              y: `${ getYPos() }`,
+              x: `${getXPos()}`,
+              y: `${getYPos()}`,
               color: `${videoBgColor}`,
-              },
             },
-            {
-              filter: 'setsar',
-              options: '1',
-            },
-          ];
+          },
+          {
+            filter: 'setsar',
+            options: '1',
+          },
+        ];
 
     let start = startTime.split(':');
     let end = endTime.split(':');
@@ -273,8 +283,8 @@ export function useWriteFile() {
     let secondsEnd = +end[0] * 60 * 60 + +end[1] * 60 + +end[2];
 
     const audioOptions = muteAudio
-      ? { filter: 'volume', options: '0.0' }
-      : { filter: 'volume', options: `${audioVolume / 100}` };
+      ? {filter: 'volume', options: '0.0'}
+      : {filter: 'volume', options: `${audioVolume / 100}`};
 
     const formData = new FormData();
     formData.append('file', video);

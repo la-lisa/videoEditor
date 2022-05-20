@@ -98,6 +98,7 @@ app.post("/killffmpeg", () => {
 const processVideo = (req, res, location, filename, params) => {
   const {afOptions, vfOptions, trimTime, duration, adjustOptions} = params;
 
+  console.log(adjustOptions);
   return new Promise((resolve, reject) => {
     videoEncoding = ffmpeg(location)
       .videoFilters(JSON.parse(adjustOptions))

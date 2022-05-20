@@ -1,4 +1,4 @@
-import {VIDEO_FIT} from '../utils/utils';
+import {VIDEO_ALIGN, VIDEO_FIT} from '../utils/utils';
 
 const createEditorSlice = (set, get) => ({
   canvasFormat: null,
@@ -43,7 +43,7 @@ const createEditorSlice = (set, get) => ({
   setSaturation: (saturation) => set({saturation: saturation}),
   zoom: 0,
   setZoom: (zoom) => set({zoom: zoom}),
-  videoAlign: null,
+  videoAlign: VIDEO_ALIGN._CENTER,
   setVideoAlign: (align) => set({videoAlign: align}),
   // TODO: implement undo/redo
   canUndo: false,

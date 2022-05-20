@@ -148,9 +148,9 @@ const Editor = ({ onReady }, ref) => {
                     objectFit: videoFit,
                     objectPosition:videoAlign,
                     transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${zoom/100 + 1})`,
-                    filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) hue-rotate(${hue}deg) invert(${
+                    filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100}) hue-rotate(${hue}deg) invert(${
                       invert ? 100 : 0
-                    }%) saturate(${saturation / 100}) blur(${blur}px)`,
+                    }%) blur(${blur}px)`,
                   }}
                   ref={ref}
                   src={videoUrl}

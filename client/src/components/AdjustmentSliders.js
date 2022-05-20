@@ -30,7 +30,7 @@ export default function AdjustmentSliders() {
         value={brightness}
         step={1}
         min={0}
-        max={500}
+        max={200}
       />
       <Typography gutterBottom>Contrast</Typography>
       <Slider
@@ -41,7 +41,7 @@ export default function AdjustmentSliders() {
         value={contrast}
         step={1}
         min={0}
-        max={500}
+        max={200}
       />
       <Typography gutterBottom>Saturation</Typography>
       <Slider
@@ -52,7 +52,7 @@ export default function AdjustmentSliders() {
         value={saturation}
         step={1}
         min={0}
-        max={500}
+        max={300}
       />
       <Typography gutterBottom>Hue</Typography>
       <Slider
