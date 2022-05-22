@@ -8,8 +8,8 @@ export default function ModalDialog() {
   const setOpen = useStore((state) => state.setIsDialogShown);
   const { title, actionButton, cancelButton } = state;
 
-  const onClose = () => {
-    setOpen(false);
+  const onClose = (_, reason) => {
+    if (reason !== 'backdropClick') setOpen(false);
   };
 
   return (
