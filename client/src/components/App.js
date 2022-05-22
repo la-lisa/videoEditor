@@ -43,7 +43,7 @@ export default function App() {
             <Editor ref={videoElemRef} onReady={handleVideoReady} />
             {videoReady && <Actions />}
           </Container>
-          {videoReady && <Timeline ref={videoElemRef} />}
+          {videoReady && <Timeline ref={videoElemRef} videoReady={videoReady} />}
           <ModalDialog />
         </Box>
       </Box>

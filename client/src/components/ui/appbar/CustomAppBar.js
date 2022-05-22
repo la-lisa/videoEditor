@@ -41,7 +41,7 @@ export default function CustomAppBar({ videoReady }) {
     });
 
   return (
-    <Box sx={{ position: 'absolute', top: 0, right: 0, left: 0, height: theme.spacing(8) }}>
+    <Box sx={{ position: 'absolute', top: 0, right: 0, left: 0, height: theme.spacing(8), zIndex: 1 }}>
       <AppBar position="static" color="primary" enableColorOnDark>
         <Toolbar>
           <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} flexGrow={1}>
