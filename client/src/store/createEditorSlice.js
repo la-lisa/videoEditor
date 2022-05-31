@@ -1,6 +1,7 @@
 import {VIDEO_ALIGN, VIDEO_FIT} from '../utils/utils';
+import {undoMiddleware} from "zundo";
 
-const createEditorSlice = (set, get) => ({
+const createEditorSlice = undoMiddleware((set, get) => ({
   canvasFormat: null,
   setCanvasFormat: (format) => set({canvasFormat: format}),
   canvasFormatChosen: false,
@@ -45,9 +46,6 @@ const createEditorSlice = (set, get) => ({
   setZoom: (zoom) => set({zoom: zoom}),
   videoAlign: VIDEO_ALIGN._CENTER,
   setVideoAlign: (align) => set({videoAlign: align}),
-  // TODO: implement undo/redo
-  canUndo: false,
-  canRedo: false,
-});
+}), {include: ['canvasFormatChosen', 'setCanvasFormatChosen', 'resetCanvasFormat', 'isDialogShown']});
 
 export default createEditorSlice;
