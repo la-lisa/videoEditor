@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
 import {
@@ -6,7 +6,7 @@ import {
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_SAVE_BUTTON_TITLE,
   VIDEO_FIT,
-  VIDEO_ALIGN
+  VIDEO_ALIGN,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -83,15 +83,12 @@ export function useWriteFile() {
   const invert = useStore((state) => state.invert);
   const flipHorizontal = useStore((state) => state.flipHorizontal);
   const flipVertical = useStore((state) => state.flipVertical);
-  const zoom = useStore((state) => state.zoom);
   const videoAlign = useStore((state) => state.videoAlign);
 
   const handleVideoProgressDialogCancel = () => {
-    axios
-      .post('/killffmpeg')
-      .catch((e) => {
-        console.error('An error occurred: ', e);
-      });
+    axios.post('/killffmpeg').catch((e) => {
+      console.error('An error occurred: ', e);
+    });
     closeDialog();
   };
 
@@ -145,8 +142,7 @@ export function useWriteFile() {
     } else {
       return '0';
     }
-  }
-
+  };
 
   const getXPos = () => {
     if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
@@ -156,7 +152,7 @@ export function useWriteFile() {
     } else {
       return '0';
     }
-  }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -173,42 +169,18 @@ export function useWriteFile() {
 
     const serverVideoHref = `http://localhost:3001/${resultVideoUrl}`;
 
-    setDialog(() => <VideoProcessingFinishedDialog/>, {
+    setDialog(() => <VideoProcessingFinishedDialog />, {
       title: 'Rendering completed!',
-      actionButton: {title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true},
-      cancelButton: {title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel},
+      actionButton: { title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
+      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
     });
   }, [resultVideoUrl]);
 
   return async () => {
-    openDialog(() => <VideoProgressDialog/>, {
+    openDialog(() => <VideoProgressDialog />, {
       title: 'Rendering...',
-      cancelButton: {title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel},
+      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
     });
-
-    const vflip = flipVertical
-      ? {
-        filter: 'vflip',
-      }
-      : {
-        filter: 'curves',
-      };
-
-    const hflip = flipHorizontal
-      ? {
-        filter: 'hflip',
-      }
-      : {
-        filter: 'curves',
-      };
-
-    const doInvert = invert
-      ? {
-        filter: 'negate',
-      }
-      : {
-        filter: 'curves',
-      };
 
     const adjustmentOptions = [
       {
@@ -232,50 +204,52 @@ export function useWriteFile() {
           romax: shiftValuesBrightnessDark(brightness),
           gomax: shiftValuesBrightnessDark(brightness),
           bomax: shiftValuesBrightnessDark(brightness),
-        }
+        },
       },
       {
         filter: 'hue',
         options: {
-          h: `${hue}`,
+          h: hue,
         },
-      }, doInvert,
+      },
+      ...(invert ? [{ filter: 'negate' }] : []),
       {
         filter: 'gblur',
         options: {
-          sigma: `${blur}`
-        }
+          sigma: blur,
+        },
       },
-      vflip, hflip
+      ...(flipVertical ? [{ filter: 'vflip' }] : []),
+      ...(flipHorizontal ? [{ filter: 'hflip' }] : []),
     ];
 
     const vfOptions =
       videoFit === VIDEO_FIT._COVER
         ? {
-          filter: 'crop',
-          options: {
-            w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
-            h: 'ih',
-            x: `${getXPos()}`,
-            y: `${getYPos()}`
-          },
-        }
-        : [
-          {
-            filter: 'pad',
+            filter: 'crop',
             options: {
-              w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
-              h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
-              x: `${getXPos()}`,
-              y: `${getYPos()}`,
-              color: `${videoBgColor}`,
+              w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
+              h: 'ih',
+              x: getXPos(),
+              y: getYPos(),
             },
-          },
-          {
-            filter: 'setsar',
-            options: '1',
-          },
-        ];
+          }
+        : [
+            {
+              filter: 'pad',
+              options: {
+                w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
+                h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
+                x: getXPos(),
+                y: getYPos(),
+                color: videoBgColor,
+              },
+            },
+            {
+              filter: 'setsar',
+              options: '1',
+            },
+          ];
 
     let start = startTime.split(':');
     let end = endTime.split(':');
@@ -283,8 +257,8 @@ export function useWriteFile() {
     let secondsEnd = +end[0] * 60 * 60 + +end[1] * 60 + +end[2];
 
     const audioOptions = muteAudio
-      ? {filter: 'volume', options: '0.0'}
-      : {filter: 'volume', options: `${audioVolume / 100}`};
+      ? { filter: 'volume', options: '0.0' }
+      : { filter: 'volume', options: `${audioVolume / 100}` };
 
     const formData = new FormData();
     formData.append('file', video);

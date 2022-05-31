@@ -4,7 +4,7 @@ import { PauseCircle, PlayCircle } from '@mui/icons-material';
 import useStore from '../store/useStore';
 import { useWriteFile } from '../hooks/hooks';
 
-const Timeline = (props, ref) => {
+const Timeline = ({ videoReady }, ref) => {
   const isPlaying = useStore((state) => state.isPlaying);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
   const duration = useStore((state) => state.duration);
@@ -43,7 +43,7 @@ const Timeline = (props, ref) => {
             onChange={handleScrub}
             valueLabelDisplay="auto"
           />
-          <Button variant="contained" onClick={writeFile}>
+          <Button variant="contained" onClick={writeFile} disabled={!videoReady}>
             Render
           </Button>
         </Stack>
