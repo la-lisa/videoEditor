@@ -46,6 +46,6 @@ const createEditorSlice = undoMiddleware((set, get) => ({
   setZoom: (zoom) => set({zoom: zoom}),
   videoAlign: VIDEO_ALIGN._CENTER,
   setVideoAlign: (align) => set({videoAlign: align}),
-}), {include: ['canvasFormatChosen', 'setCanvasFormatChosen', 'resetCanvasFormat', 'isDialogShown']});
+}), {exclude: ['canvasFormatChosen', 'setCanvasFormatChosen', 'resetCanvasFormat', 'isDialogShown']});
 
 export default createEditorSlice;
