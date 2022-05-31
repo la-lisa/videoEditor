@@ -72,9 +72,9 @@ export default function AdjustmentSliders() {
         defaultValue={0}
         valueLabelDisplay="auto"
         value={blur}
-        step={1}
+        step={0.1}
         min={0}
-        max={50}
+        max={2}
       />
       <Typography gutterBottom>Invert</Typography>
       <Switch onChange={()=>setInvert(!invert)} checked={invert} color="primary" />
