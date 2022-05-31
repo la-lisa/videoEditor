@@ -21,6 +21,7 @@
     "react-scripts": "5.0.0",
     "socket.io-client": "^4.4.1",
     "web-vitals": "^2.1.4",
+    "zundo": "^1.5.9",
     "zustand": "^3.7.1"
   },
   "devDependencies": {

@@ -106,6 +106,7 @@ const processVideo = (req, res, location, filename, params) => {
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
       .audioFilter(JSON.parse(afOptions))
+      .addOptions("-pix_fmt yuv420p")
       .on("error", (err) => {
         reject("An error occurred while processing video: " + err.message);
       })
