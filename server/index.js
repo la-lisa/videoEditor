@@ -10,7 +10,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-const {nanoid} = require("nanoid");
+const { nanoid } = require("nanoid");
 let videoEncoding;
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
 const upload = multer({
   storage: multer.diskStorage({
     destination: "./server/uploads/",
-    filename: function(req, file, cb) {
+    filename: function (req, file, cb) {
       // user shortid.generate() alone if no extension is needed
       cb(null, Date.now() + path.parse(file.originalname).ext);
     },
@@ -69,16 +69,21 @@ const logProgress = (progress, _) => {
 
 const generateThumbnail = (filename) => {
   return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(`${newVideoUrl}/${filename}.mp4`, function(err, metadata) {
+    ffmpeg.ffprobe(`${newVideoUrl}/${filename}.mp4`, function (err, metadata) {
       ffmpeg(`${newVideoUrl}/${filename}.mp4`)
         .screenshots({
           count: 1,
           folder: `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}`,
           filename: `${filename}.jpg`,
-          size: Math.round(metadata.streams[0].width/metadata.streams[0].height*320) + "x320",
+          size:
+            Math.round(
+              (metadata.streams[0].width / metadata.streams[0].height) * 320
+            ) + "x320",
         })
         .on("error", (err) => {
-          reject("An error occurred while generating thumbnail: " + err.message);
+          reject(
+            "An error occurred while generating thumbnail: " + err.message
+          );
         })
         .on("filenames", (filenames) => {
           console.log("Generated thumbnails: ", filenames);
@@ -89,14 +94,13 @@ const generateThumbnail = (filename) => {
 };
 
 app.post("/killffmpeg", () => {
-  if(videoEncoding){
+  if (videoEncoding) {
     videoEncoding.kill();
   }
-
 });
 
 const processVideo = (req, res, location, filename, params) => {
-  const {afOptions, vfOptions, trimTime, duration, adjustOptions} = params;
+  const { afOptions, vfOptions, trimTime, duration, adjustOptions } = params;
 
   return new Promise((resolve, reject) => {
     videoEncoding = ffmpeg(location)
@@ -155,7 +159,7 @@ app.post("/encode", upload.single("file"), (req, res) => {
       .then(() => {
         res.json({
           newVideoUrl: `download/video/${filename}.mp4`,
-          newThumbUrl: `${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
+          newThumbUrl: `api/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
         });
       })
       .catch((e) => console.error(e));
