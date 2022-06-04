@@ -14,14 +14,14 @@ import {
 import { ReactComponent as Logo } from '../../../assets/logo.svg';
 import UndoRedoButtons from './UndoRedoButtons';
 import { createTheme } from '@mui/material/styles';
-import useStore from '../../../store/useStore';
 import { useWriteFile } from '../../../hooks/hooks';
+import useStoreWithUndo from '../../../store/useStoreWithUndo';
 
 export default function CustomAppBar({ videoReady }) {
   const writeFile = useWriteFile();
   const theme = useTheme();
 
-  const showButtons = useStore((state) => state.canvasFormatChosen);
+  const showButtons = useStoreWithUndo((state) => state.canvasFormatChosen);
 
   const createButtonTheme = (theme) =>
     createTheme({

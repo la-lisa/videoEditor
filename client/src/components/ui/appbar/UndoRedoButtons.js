@@ -1,26 +1,23 @@
 import { Button, Stack } from '@mui/material';
 import { Redo, Undo, Clear } from '@mui/icons-material';
-import useStore from '../../../store/useStore';
+import useStoreWithUndo from '../../../store/useStoreWithUndo';
 
 export default function UndoRedoButtons() {
-  const { undo, redo, clear, getState } = useStore();
+  const { undo, redo, getState } = useStoreWithUndo();
 
   const clearAll = () => {
-    useStore.setState(getState().prevStates[1], true);
-    clear();
+    useStoreWithUndo.setState(getState().prevStates[0], false);
   };
-
-  console.log(getState().prevStates);
 
   return (
     <Stack direction="row">
-      <Button startIcon={<Undo />} onClick={undo} disabled={!getState().prevStates.length}>
+      <Button startIcon={<Undo />} onClick={undo} disabled={getState().prevStates.length <= 1}>
         undo
       </Button>
       <Button endIcon={<Redo />} onClick={redo} disabled={!getState().futureStates.length}>
         redo
       </Button>
-      <Button endIcon={<Clear />} onClick={clearAll} disabled={!getState().prevStates.length}>
+      <Button endIcon={<Clear />} onClick={clearAll} disabled={getState().prevStates.length <= 1}>
         clear
       </Button>
     </Stack>

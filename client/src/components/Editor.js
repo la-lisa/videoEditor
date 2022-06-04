@@ -6,30 +6,31 @@ import { useDimensionChange, useEventListener } from '../hooks/hooks';
 import useStore from '../store/useStore';
 import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
+import useStoreWithUndo from '../store/useStoreWithUndo';
 
 const Editor = ({ onReady }, ref) => {
   const video = useStore((state) => state.video);
   const setVideo = useStore((state) => state.setVideo);
-  const canvasFormat = useStore((state) => state.canvasFormat);
-  const canvasFormatChosen = useStore((state) => state.canvasFormatChosen);
-  const setCanvasFormatChosen = useStore((state) => state.setCanvasFormatChosen);
-  const videoFit = useStore((state) => state.videoFit);
-  const videoBgColor = useStore((state) => state.videoBgColor);
+  const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
+  const canvasFormatChosen = useStoreWithUndo((state) => state.canvasFormatChosen);
+  const setCanvasFormatChosen = useStoreWithUndo((state) => state.setCanvasFormatChosen);
+  const videoFit = useStoreWithUndo((state) => state.videoFit);
+  const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const openDialog = useStore((state) => state.openDialog);
   const closeDialog = useStore((state) => state.closeDialog);
-  const setDuration = useStore((state) => state.setDuration);
+  const setDuration = useStoreWithUndo((state) => state.setDuration);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
-  const setTime = useStore((state) => state.setTime);
-  const brightness = useStore((state) => state.brightness);
-  const contrast = useStore((state) => state.contrast);
-  const blur = useStore((state) => state.blur);
-  const hue = useStore((state) => state.hue);
-  const saturation = useStore((state) => state.saturation);
-  const invert = useStore((state) => state.invert);
-  const flipHorizontal = useStore((state) => state.flipHorizontal);
-  const flipVertical = useStore((state) => state.flipVertical);
-  const zoom = useStore((state) => state.zoom);
-  const videoAlign = useStore((state) => state.videoAlign);
+  const setTime = useStoreWithUndo((state) => state.setTime);
+  const brightness = useStoreWithUndo((state) => state.brightness);
+  const contrast = useStoreWithUndo((state) => state.contrast);
+  const blur = useStoreWithUndo((state) => state.blur);
+  const hue = useStoreWithUndo((state) => state.hue);
+  const saturation = useStoreWithUndo((state) => state.saturation);
+  const invert = useStoreWithUndo((state) => state.invert);
+  const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
+  const flipVertical = useStoreWithUndo((state) => state.flipVertical);
+  const zoom = useStoreWithUndo((state) => state.zoom);
+  const videoAlign = useStoreWithUndo((state) => state.videoAlign);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -145,11 +146,13 @@ const Editor = ({ onReady }, ref) => {
                     width: '100%',
                     height: '100%',
                     objectFit: videoFit,
-                    objectPosition:videoAlign,
-                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${zoom/100 + 1})`,
-                    filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${saturation / 100}) hue-rotate(${hue}deg) invert(${
-                      invert ? 100 : 0
-                    }%) blur(${blur}px)`,
+                    objectPosition: videoAlign,
+                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${
+                      zoom / 100 + 1
+                    })`,
+                    filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${
+                      saturation / 100
+                    }) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) blur(${blur}px)`,
                   }}
                   ref={ref}
                   src={videoUrl}

@@ -3,12 +3,13 @@ import { forwardRef, useEffect, useMemo } from 'react';
 import { PauseCircle, PlayCircle } from '@mui/icons-material';
 import useStore from '../store/useStore';
 import { useWriteFile } from '../hooks/hooks';
+import useStoreWithUndo from '../store/useStoreWithUndo';
 
 const Timeline = ({ videoReady }, ref) => {
   const isPlaying = useStore((state) => state.isPlaying);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
-  const duration = useStore((state) => state.duration);
-  const time = useStore((state) => state.time);
+  const duration = useStoreWithUndo((state) => state.duration);
+  const time = useStoreWithUndo((state) => state.time);
   const writeFile = useWriteFile();
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import {
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
+import useStoreWithUndo from '../store/useStoreWithUndo';
 
 // https://usehooks.com/useEventListener/
 export function useEventListener(eventName, handler, element = window) {
@@ -61,9 +62,9 @@ export function useDimensionChange(handler) {
 
 export function useWriteFile() {
   const video = useStore((state) => state.video);
-  const videoFit = useStore((state) => state.videoFit);
-  const canvasFormat = useStore((state) => state.canvasFormat);
-  const videoBgColor = useStore((state) => state.videoBgColor);
+  const videoFit = useStoreWithUndo((state) => state.videoFit);
+  const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
+  const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const resultVideoUrl = useStore((state) => state.resultVideoUrl);
   const setResultVideoUrl = useStore((state) => state.setResultVideoUrl);
   const setResultThumbUrl = useStore((state) => state.setResultThumbUrl);
@@ -71,19 +72,19 @@ export function useWriteFile() {
   const openDialog = useStore((state) => state.openDialog);
   const setDialog = useStore((state) => state.setDialog);
   const closeDialog = useStore((state) => state.closeDialog);
-  const startTime = useStore((state) => state.startTime);
-  const endTime = useStore((state) => state.endTime);
-  const muteAudio = useStore((state) => state.muteAudio);
-  const audioVolume = useStore((state) => state.audioVolume);
-  const brightness = useStore((state) => state.brightness);
-  const contrast = useStore((state) => state.contrast);
-  const blur = useStore((state) => state.blur);
-  const hue = useStore((state) => state.hue);
-  const saturation = useStore((state) => state.saturation);
-  const invert = useStore((state) => state.invert);
-  const flipHorizontal = useStore((state) => state.flipHorizontal);
-  const flipVertical = useStore((state) => state.flipVertical);
-  const videoAlign = useStore((state) => state.videoAlign);
+  const startTime = useStoreWithUndo((state) => state.startTime);
+  const endTime = useStoreWithUndo((state) => state.endTime);
+  const muteAudio = useStoreWithUndo((state) => state.muteAudio);
+  const audioVolume = useStoreWithUndo((state) => state.audioVolume);
+  const brightness = useStoreWithUndo((state) => state.brightness);
+  const contrast = useStoreWithUndo((state) => state.contrast);
+  const blur = useStoreWithUndo((state) => state.blur);
+  const hue = useStoreWithUndo((state) => state.hue);
+  const saturation = useStoreWithUndo((state) => state.saturation);
+  const invert = useStoreWithUndo((state) => state.invert);
+  const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
+  const flipVertical = useStoreWithUndo((state) => state.flipVertical);
+  const videoAlign = useStoreWithUndo((state) => state.videoAlign);
 
   const handleVideoProgressDialogCancel = () => {
     axios.post('/api/killffmpeg').catch((e) => {
