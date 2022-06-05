@@ -1,10 +1,11 @@
-import { Menu, Stack, Typography } from '@mui/material';
+import { Menu, Stack, Typography, useTheme } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 
-export default function ActionItem({ Icon, title, children }) {
+export default function ActionItem({ Icon, title, onClick, disabled, sx, children }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = !!anchorEl;
+  const theme = useTheme();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -19,8 +20,14 @@ export default function ActionItem({ Icon, title, children }) {
       <Stack
         direction="row"
         spacing={2}
-        onClick={handleClick}
-        sx={{ whiteSpace: 'nowrap', alignItems: 'center', cursor: 'pointer' }}
+        onClick={disabled ? undefined : onClick || handleClick}
+        sx={{
+          whiteSpace: 'nowrap',
+          alignItems: 'center',
+          userSelect: 'none',
+          ...sx,
+          ...(disabled ? { color: theme.palette.text.disabled } : { cursor: 'pointer' }),
+        }}
       >
         <Icon />
         <Typography>{title}</Typography>
@@ -50,5 +57,8 @@ export default function ActionItem({ Icon, title, children }) {
 ActionItem.propTypes = {
   Icon: PropTypes.func,
   title: PropTypes.string,
+  onClick: PropTypes.func,
+  disabled: PropTypes.bool,
+  sx: PropTypes.object,
   children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 };

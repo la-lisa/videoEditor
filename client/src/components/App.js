@@ -1,7 +1,7 @@
 import Editor from './Editor.js';
 import { ThemeProvider } from '@mui/material/styles';
 import { Box, Container, CssBaseline } from '@mui/material';
-import Actions from './Actions';
+import Actions from './ui/actions/Actions';
 import ModalDialog from './ui/dialogs/ModalDialog';
 import CustomAppBar from './ui/appbar/CustomAppBar';
 import { useRef, useState } from 'react';

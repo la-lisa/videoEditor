@@ -1,7 +1,18 @@
+import React from 'react';
+import ActionItem from '../../ActionItem';
+import { Contrast } from '@mui/icons-material';
+import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
 import { Box, Slider, Switch, Typography } from '@mui/material';
-import useStoreWithUndo from '../store/useStoreWithUndo';
 
-export default function AdjustmentSliders() {
+export default function AdjustmentsActionItem() {
+  return (
+    <ActionItem Icon={() => <Contrast />} title="Adjustments">
+      <AdjustmentSliders />
+    </ActionItem>
+  );
+}
+
+function AdjustmentSliders() {
   const brightness = useStoreWithUndo((state) => state.brightness);
   const setBrightness = useStoreWithUndo((state) => state.setBrightness);
   const contrast = useStoreWithUndo((state) => state.contrast);
@@ -18,6 +29,7 @@ export default function AdjustmentSliders() {
   const setFlipHorizontal = useStoreWithUndo((state) => state.setFlipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const setFlipVertical = useStoreWithUndo((state) => state.setFlipVertical);
+
   return (
     <>
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
