@@ -4,7 +4,7 @@ import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
 import { useDimensionChange, useEventListener } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE } from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_ALIGN } from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
 import useStoreWithUndo from '../store/useStoreWithUndo';
 
@@ -118,6 +118,18 @@ const Editor = ({ onReady }, ref) => {
     }
   }, [maxWidth, maxHeight, canvasFormat]);
 
+  const objectPosition = useMemo(() => {
+    if (flipHorizontal) {
+      if (videoAlign === VIDEO_ALIGN._LEFT) return VIDEO_ALIGN._RIGHT;
+      if (videoAlign === VIDEO_ALIGN._RIGHT) return VIDEO_ALIGN._LEFT;
+    }
+    if (flipVertical) {
+      if (videoAlign === VIDEO_ALIGN._TOP) return VIDEO_ALIGN._BOTTOM;
+      if (videoAlign === VIDEO_ALIGN._BOTTOM) return VIDEO_ALIGN._TOP;
+    }
+    return videoAlign;
+  }, [flipHorizontal, flipVertical, videoAlign]);
+
   return (
     <Grid container align="center" justifyContent="center">
       <Grid ref={dimensionsRef} item align="center" xs={10} lg={8}>
@@ -131,6 +143,7 @@ const Editor = ({ onReady }, ref) => {
                   alignSelf: 'center',
                   width: width,
                   height: height,
+                  overflow: 'hidden',
                   border: theme.spacing(0.25),
                   borderColor: theme.palette.primary.dark,
                   borderStyle: 'dashed',
@@ -146,7 +159,7 @@ const Editor = ({ onReady }, ref) => {
                     width: '100%',
                     height: '100%',
                     objectFit: videoFit,
-                    objectPosition: videoAlign,
+                    objectPosition: objectPosition,
                     transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${
                       zoom / 100 + 1
                     })`,
