@@ -40,4 +40,5 @@ export const VIDEO_ALIGN = {
 
 export const DIALOG_OK_BUTTON_TITLE = 'ok';
 export const DIALOG_CANCEL_BUTTON_TITLE = 'cancel';
-export const DIALOG_SAVE_BUTTON_TITLE = 'save';
+export const DIALOG_DOWNLOAD_BUTTON_TITLE = 'download';
+export const DIALOG_BACK_TO_EDITOR_BUTTON_TITLE = 'back to editor';

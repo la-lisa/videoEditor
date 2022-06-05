@@ -4,9 +4,10 @@ import useStore from '../store/useStore';
 import {
   CANVAS_FORMATS,
   DIALOG_CANCEL_BUTTON_TITLE,
-  DIALOG_SAVE_BUTTON_TITLE,
+  DIALOG_DOWNLOAD_BUTTON_TITLE,
   VIDEO_FIT,
   VIDEO_ALIGN,
+  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -172,8 +173,8 @@ export function useWriteFile() {
 
     setDialog(() => <VideoProcessingFinishedDialog />, {
       title: 'Rendering completed!',
-      actionButton: { title: DIALOG_SAVE_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
-      cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+      actionButton: { title: DIALOG_DOWNLOAD_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
+      cancelButton: { title: DIALOG_BACK_TO_EDITOR_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
     });
   }, [resultVideoUrl]);
 

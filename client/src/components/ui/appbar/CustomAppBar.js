@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   IconButton,
+  Link,
   Stack,
   SvgIcon,
   ThemeProvider,
@@ -46,9 +47,9 @@ export default function CustomAppBar({ videoReady }) {
         <Toolbar>
           <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} flexGrow={1}>
             <Stack direction="row" alignItems="center">
-              <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+              <Link component={IconButton} href="/" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
                 <SvgIcon fontSize="large" component={Logo} inheritViewBox />
-              </IconButton>
+              </Link>
               <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                 ezvideo
               </Typography>
