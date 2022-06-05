@@ -11,15 +11,15 @@ import useStoreWithUndo from '../store/useStoreWithUndo';
 const Editor = ({ onReady }, ref) => {
   const video = useStore((state) => state.video);
   const setVideo = useStore((state) => state.setVideo);
+  const openDialog = useStore((state) => state.openDialog);
+  const closeDialog = useStore((state) => state.closeDialog);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
   const canvasFormatChosen = useStoreWithUndo((state) => state.canvasFormatChosen);
   const setCanvasFormatChosen = useStoreWithUndo((state) => state.setCanvasFormatChosen);
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
-  const openDialog = useStore((state) => state.openDialog);
-  const closeDialog = useStore((state) => state.closeDialog);
   const setDuration = useStoreWithUndo((state) => state.setDuration);
-  const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
+  const toggleIsPlaying = useStoreWithUndo((state) => state.toggleIsPlaying);
   const setTime = useStoreWithUndo((state) => state.setTime);
   const brightness = useStoreWithUndo((state) => state.brightness);
   const contrast = useStoreWithUndo((state) => state.contrast);

@@ -63,9 +63,6 @@ export function useDimensionChange(handler) {
 
 export function useWriteFile() {
   const video = useStore((state) => state.video);
-  const videoFit = useStoreWithUndo((state) => state.videoFit);
-  const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
-  const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const resultVideoUrl = useStore((state) => state.resultVideoUrl);
   const setResultVideoUrl = useStore((state) => state.setResultVideoUrl);
   const setResultThumbUrl = useStore((state) => state.setResultThumbUrl);
@@ -73,6 +70,9 @@ export function useWriteFile() {
   const openDialog = useStore((state) => state.openDialog);
   const setDialog = useStore((state) => state.setDialog);
   const closeDialog = useStore((state) => state.closeDialog);
+  const videoFit = useStoreWithUndo((state) => state.videoFit);
+  const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
+  const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const startTime = useStoreWithUndo((state) => state.startTime);
   const endTime = useStoreWithUndo((state) => state.endTime);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
