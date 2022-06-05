@@ -1,0 +1,9 @@
+<svg id="Ebene_1" data-name="Ebene 1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <title>video-fit-contain</title>
+  <path d="M2,4V2H5V0H2A2,2,0,0,0,0,2V4Z" transform="translate(0)"/>
+  <path d="M15,0h3a2,2,0,0,1,2,2V4H18V2H15Z" transform="translate(0)"/>
+  <path d="M18,16v2H15v2h3a2,2,0,0,0,2-2V16Z" transform="translate(0)"/>
+  <path d="M5,18H2V16H0v2a2,2,0,0,0,2,2H5Z" transform="translate(0)"/>
+  <path d="M18.67,6.25v7.5H1.33V6.25H18.67M20,5H0V15H20Z" transform="translate(0)"/>
+  <polygon points="10 7.14 10.92 9.03 13 9.33 11.5 10.79 11.85 12.86 10 11.87 8.15 12.86 8.5 10.79 7 9.33 9.08 9.03 10 7.14"/>
+</svg>

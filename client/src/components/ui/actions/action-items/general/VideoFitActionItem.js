@@ -1,13 +1,19 @@
 import React from 'react';
-import { FitScreen, QuestionMark } from '@mui/icons-material';
+import { FitScreen } from '@mui/icons-material';
 import { VIDEO_FIT } from '../../../../../utils/utils';
-import { ListItemIcon, ListItemText, MenuItem, Stack } from '@mui/material';
+import { capitalize, ListItemIcon, ListItemText, MenuItem, Stack, SvgIcon } from '@mui/material';
 import ActionItem from '../../ActionItem';
 import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
+import { ReactComponent as VideoFitContain } from '../../../../../assets/video-fit-contain.svg';
+import { ReactComponent as VideoFitCover } from '../../../../../assets/video-fit-cover.svg';
 
 export default function VideoFitActionItem() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
+
+  const iconComponentForVideoFit = (videoFit) => {
+    return videoFit === VIDEO_FIT._COVER ? VideoFitCover : VideoFitContain;
+  };
 
   return (
     <ActionItem Icon={() => <FitScreen />} title="Video Fit">
@@ -16,9 +22,9 @@ export default function VideoFitActionItem() {
           <MenuItem key={`menuItem-${fit}`} onClick={() => setVideoFit(fit)} selected={videoFit === fit}>
             <Stack direction="row" spacing={1}>
               <ListItemIcon>
-                <QuestionMark fontSize="small" />
+                <SvgIcon component={iconComponentForVideoFit(fit)} inheritViewBox />
               </ListItemIcon>
-              <ListItemText>{fit}</ListItemText>
+              <ListItemText>{capitalize(fit)}</ListItemText>
             </Stack>
           </MenuItem>
         );
