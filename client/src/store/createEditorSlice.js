@@ -47,6 +47,8 @@ const createEditorSlice = undoMiddleware(
     setZoom: (zoom) => set({ zoom: zoom }),
     videoAlign: VIDEO_ALIGN._CENTER,
     setVideoAlign: (align) => set({ videoAlign: align }),
+    panShot: false,
+    setPanShot: (panShot) => set({ panShot: panShot }),
   }),
   {
     include: [
@@ -68,6 +70,7 @@ const createEditorSlice = undoMiddleware(
       'saturation',
       'zoom',
       'videoAlign',
+      'panShot',
     ],
   }
 );

@@ -6,12 +6,13 @@ import AspectRatioActionItem from './action-items/general/AspectRatioActionItem'
 import VideoFitActionItem from './action-items/general/VideoFitActionItem';
 import TrimActionItem from './action-items/general/TrimActionItem';
 import AlignmentActionItem from './action-items/general/AlignmentActionItem';
-import ZoomActionItem from './action-items/general/ZoomActionItem';
 import AdjustmentsActionItem from './action-items/effects/AdjustmentsActionItem';
 import BackgroundActionItem from './action-items/effects/BackgroundActionItem';
 import VolumeActionItem from './action-items/audio/VolumeActionItem';
 import MuteActionItem from './action-items/audio/MuteActionItem';
 import ResetAllActionItem from './action-items/ResetAllActionItem';
+import FlipActionItem from './action-items/effects/FlipActionItem';
+import PanShotActionItem from './action-items/effects/PanShotActionItem';
 
 function tabProps(index) {
   return {
@@ -52,12 +53,13 @@ export default function Actions() {
                 <VideoFitActionItem />
                 <TrimActionItem />
                 <AlignmentActionItem />
-                <ZoomActionItem />
               </TabPanel>
               <TabPanel index={1} value={currentTabIdx}>
                 <ResetAllActionItem />
                 <AdjustmentsActionItem />
+                <FlipActionItem />
                 <BackgroundActionItem />
+                <PanShotActionItem />
               </TabPanel>
               <TabPanel index={2} value={currentTabIdx}>
                 <ResetAllActionItem />

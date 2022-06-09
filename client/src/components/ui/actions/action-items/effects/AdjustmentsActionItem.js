@@ -25,10 +25,6 @@ function AdjustmentSliders() {
   const setSaturation = useStoreWithUndo((state) => state.setSaturation);
   const invert = useStoreWithUndo((state) => state.invert);
   const setInvert = useStoreWithUndo((state) => state.setInvert);
-  const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
-  const setFlipHorizontal = useStoreWithUndo((state) => state.setFlipHorizontal);
-  const flipVertical = useStoreWithUndo((state) => state.flipVertical);
-  const setFlipVertical = useStoreWithUndo((state) => state.setFlipVertical);
 
   return (
     <>
@@ -90,10 +86,6 @@ function AdjustmentSliders() {
         />
         <Typography gutterBottom>Invert</Typography>
         <Switch onChange={() => setInvert(!invert)} checked={invert} color="primary" />
-        <Typography gutterBottom>Flip Horizontal</Typography>
-        <Switch onChange={() => setFlipHorizontal(!flipHorizontal)} checked={flipHorizontal} color="primary" />
-        <Typography gutterBottom>Flip Vertical</Typography>
-        <Switch onChange={() => setFlipVertical(!flipVertical)} checked={flipVertical} color="primary" />
       </Box>
     </>
   );
