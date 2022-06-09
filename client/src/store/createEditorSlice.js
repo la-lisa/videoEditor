@@ -58,7 +58,6 @@ const createEditorSlice = undoMiddleware(
       'muteAudio',
       'audioVolume',
       'duration',
-      'time',
       'brightness',
       'contrast',
       'blur',
