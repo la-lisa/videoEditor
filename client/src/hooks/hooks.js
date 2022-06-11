@@ -89,7 +89,7 @@ export function useWriteFile() {
   const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
-    axios.post('/api/killffmpeg').catch((e) => {
+    axios.post('/api/ffmpeg/killffmpeg').catch((e) => {
       console.error('An error occurred: ', e);
     });
     closeDialog();
@@ -283,7 +283,7 @@ export function useWriteFile() {
     formData.append('afOptions', JSON.stringify(audioOptions));
     formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
     axios
-      .post('/api/encode', formData)
+      .post('/api/ffmpeg/encode', formData)
       .then((res) => {
         setFilename(res.data.fileName);
         setResultVideoUrl(res.data.newVideoUrl);
