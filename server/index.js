@@ -99,6 +99,22 @@ app.post("/killffmpeg", () => {
   }
 });
 
+app.delete("/deleteConverted", (req) => {
+  const filename = req.body.filename;
+  try {
+    fs.unlinkSync(
+      `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${filename}.mp4`
+    );
+    fs.unlinkSync(
+      `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`
+    );
+
+    //file removed
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 const processVideo = (req, res, location, filename, params) => {
   const { afOptions, vfOptions, trimTime, duration, adjustOptions } = params;
 
@@ -160,6 +176,7 @@ app.post("/encode", upload.single("file"), (req, res) => {
         res.json({
           newVideoUrl: `download/video/${filename}.mp4`,
           newThumbUrl: `api/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
+          fileName: `${filename}`,
         });
       })
       .catch((e) => console.error(e));

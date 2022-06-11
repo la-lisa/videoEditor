@@ -10,11 +10,12 @@ module.exports = function (app) {
   });
 
   app.use(
-    '/api',
+    '/api/',
     createProxyMiddleware({
-      target: 'http://localhost:3001',
+      target: 'http://localhost:3001/',
       changeOrigin: true,
-      pathRewrite: { '^/api': '' },
+      secure: false,
+      pathRewrite: { '^/api/': '' },
     })
   );
 };

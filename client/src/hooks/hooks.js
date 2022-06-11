@@ -86,11 +86,25 @@ export function useWriteFile() {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
+  const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
     axios.post('/api/killffmpeg').catch((e) => {
       console.error('An error occurred: ', e);
     });
+    closeDialog();
+  };
+
+  const handleVideoProcessDialogNoDownload = () => {
+    axios
+      .delete('/api/deleteConverted', {
+        data: {
+          filename: filename,
+        },
+      })
+      .catch((e) => {
+        console.error('An error occurred', e);
+      });
     closeDialog();
   };
 
@@ -174,7 +188,7 @@ export function useWriteFile() {
     setDialog(() => <VideoProcessingFinishedDialog />, {
       title: 'Rendering completed!',
       actionButton: { title: DIALOG_DOWNLOAD_BUTTON_TITLE, href: serverVideoHref, target: '_blank', download: true },
-      cancelButton: { title: DIALOG_BACK_TO_EDITOR_BUTTON_TITLE, onClick: handleVideoProgressDialogCancel },
+      cancelButton: { title: DIALOG_BACK_TO_EDITOR_BUTTON_TITLE, onClick: handleVideoProcessDialogNoDownload },
     });
   }, [resultVideoUrl]);
 
@@ -271,6 +285,7 @@ export function useWriteFile() {
     axios
       .post('/api/encode', formData)
       .then((res) => {
+        setFilename(res.data.fileName);
         setResultVideoUrl(res.data.newVideoUrl);
         setResultThumbUrl(res.data.newThumbUrl);
       })
