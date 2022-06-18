@@ -86,6 +86,10 @@ export function useWriteFile() {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
+  const panShot = useStoreWithUndo((state) => state.panShot);
+  const zoom = useStoreWithUndo((state) => state.zoom);
+  const outputFormat = useStoreWithUndo((state) => state.outputFormat);
+  const panDirection = useStoreWithUndo((state) => state.panDirection);
   const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
@@ -100,6 +104,7 @@ export function useWriteFile() {
       .delete('/api/deleteConverted', {
         data: {
           filename: filename,
+          format: outputFormat,
         },
       })
       .catch((e) => {
@@ -276,12 +281,16 @@ export function useWriteFile() {
       ? { filter: 'volume', options: '0.0' }
       : { filter: 'volume', options: `${audioVolume / 100}` };
 
+    const panOptions = panShot ? { filter: 'zoomPan', options: '' } : {};
+
     const formData = new FormData();
     formData.append('file', video);
     formData.append('trimTime', JSON.stringify([secondsStart, secondsEnd]));
     formData.append('vfOptions', JSON.stringify(vfOptions));
     formData.append('afOptions', JSON.stringify(audioOptions));
     formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
+    formData.append('panOptions', JSON.stringify(panOptions));
+    formData.append('outputFormat', outputFormat);
     axios
       .post('/api/ffmpeg/encode', formData)
       .then((res) => {

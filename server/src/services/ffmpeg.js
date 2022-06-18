@@ -14,7 +14,15 @@ const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}
 let videoEncoding;
 
 const processVideo = (req, res, location, filename, params) => {
-  const { afOptions, vfOptions, trimTime, duration, adjustOptions } = params;
+  const {
+    afOptions,
+    vfOptions,
+    trimTime,
+    duration,
+    adjustOptions,
+    panOptions,
+    outputFormat,
+  } = params;
 
   return new Promise((resolve, reject) => {
     videoEncoding = ffmpeg(location)
@@ -38,7 +46,7 @@ const processVideo = (req, res, location, filename, params) => {
           reject(err.message);
         }
       })
-      .save(`${newVideoUrl}/${filename}.mp4`);
+      .save(`${newVideoUrl}/${filename}.${outputFormat}`);
   });
 };
 

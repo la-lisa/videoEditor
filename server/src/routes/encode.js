@@ -19,6 +19,9 @@ router.post("/encode", upload.single("file"), (req, res) => {
     const adjustOptions = req.body.adjustOptions;
     const trimTime = JSON.parse(req.body.trimTime);
     const afOptions = req.body.afOptions;
+    const panOptions = req.body.panOptions;
+    const outputFormat = req.body.outputFormat;
+
     const duration = {
       s: trimTime[1] - trimTime[0],
       ms: (trimTime[1] - trimTime[0]) * 1000,
@@ -30,11 +33,13 @@ router.post("/encode", upload.single("file"), (req, res) => {
       trimTime: trimTime,
       duration: duration,
       adjustOptions: adjustOptions,
+      panOptions: panOptions,
+      outputFormat: outputFormat,
     })
-      .then(() => generateThumbnail(filename))
+      .then(() => generateThumbnail(filename, outputFormat))
       .then(() => {
         res.json({
-          newVideoUrl: `download/video/${filename}.mp4`,
+          newVideoUrl: `download/video/${filename}.${outputFormat}`,
           newThumbUrl: `api/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
           fileName: `${filename}`,
         });

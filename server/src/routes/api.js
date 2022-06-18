@@ -6,9 +6,10 @@ const router = express.Router();
 
 router.delete("/deleteConverted", (req) => {
   const filename = req.body.filename;
+  const format = req.body.format;
   try {
     fs.unlinkSync(
-      `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${filename}.mp4`
+      `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${filename}.${format}`
     );
     fs.unlinkSync(
       `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`

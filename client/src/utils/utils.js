@@ -38,6 +38,25 @@ export const VIDEO_ALIGN = {
   _RIGHT: 'right',
 };
 
+export const PAN_DIRECTION = {
+  _LEFT_TO_RIGHT: 'Left to Right',
+  _RIGHT_TO_LEFT: 'Right to Left',
+  _TOP_TO_BOTTOM: 'Top to Bottom',
+  _BOTTOM_TO_TOP: 'Bottom to Top',
+  _LEFT_TO_CENTER: 'Left to Center',
+  _RIGHT_TO_CENTER: 'Right to Center',
+  _TOP_TO_CENTER: 'Top to Center',
+  _BOTTOM_TO_CENTER: 'Bottom to Center',
+};
+
+export const OUTPUT_FORMAT = {
+  _MP4: 'mp4',
+  _WEBM: 'webm',
+  _MOV: 'mov',
+  _AVI: 'avi',
+  _MKV: 'mkv',
+};
+
 export const DIALOG_OK_BUTTON_TITLE = 'ok';
 export const DIALOG_CANCEL_BUTTON_TITLE = 'cancel';
 export const DIALOG_DOWNLOAD_BUTTON_TITLE = 'download';

@@ -13,6 +13,7 @@ import MuteActionItem from './action-items/audio/MuteActionItem';
 import ResetAllActionItem from './action-items/ResetAllActionItem';
 import FlipActionItem from './action-items/effects/FlipActionItem';
 import PanShotActionItem from './action-items/effects/PanShotActionItem';
+import OutputFormatActionItem from './action-items/general/OutputFormatActionItem';
 
 function tabProps(index) {
   return {
@@ -53,6 +54,7 @@ export default function Actions() {
                 <VideoFitActionItem />
                 <TrimActionItem />
                 <AlignmentActionItem />
+                <OutputFormatActionItem />
               </TabPanel>
               <TabPanel index={1} value={currentTabIdx}>
                 <ResetAllActionItem />
