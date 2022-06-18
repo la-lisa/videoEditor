@@ -32,6 +32,8 @@ const processVideo = (req, res, location, filename, params) => {
       .setDuration(duration.s)
       .audioFilter(JSON.parse(afOptions))
       .addOptions("-pix_fmt yuv420p")
+      .addOptions("-crf 30")
+      .addOptions("-b:v 0")
       .on("error", (err) => {
         reject("An error occurred while processing video: " + err.message);
       })
