@@ -16,10 +16,14 @@ const ProgressBar = ({ videoReady }, ref) => {
   const setIsPlaying = useStore((state) => state.setIsPlaying);
   const duration = useStore((state) => state.duration);
   const time = useStore((state) => state.time);
+  const startTime = useStore((state) => state.startTime);
+  const endTime = useStore((state) => state.endTime);
   const setStartTime = useStore((state) => state.setStartTime);
   const setEndTime = useStore((state) => state.setEndTime);
   const renderVideo = useRenderVideo();
   const theme = useTheme();
+
+  const [brushPosition, setBrushPosition] = useState(undefined);
 
   // register event listeners on mount
   useEffect(() => {
@@ -37,6 +41,9 @@ const ProgressBar = ({ videoReady }, ref) => {
     const mappedTimeValue = brushScaleX.invert(e.pageX - svgRef.current.getBoundingClientRect().left);
     if (ref.current) {
       ref.current.currentTime = mappedTimeValue;
+      setStartTime(null);
+      setEndTime(null);
+      setBrushPosition(undefined);
     }
   };
 
@@ -53,7 +60,6 @@ const ProgressBar = ({ videoReady }, ref) => {
   };
 
   const svgRef = useRef(null);
-  const brushRef = useRef(null);
   const [maxWidth, setMaxWidth] = useState(0);
   const xBrushMax = useMemo(() => maxWidth || 100, [maxWidth]);
 
@@ -67,12 +73,25 @@ const ProgressBar = ({ videoReady }, ref) => {
 
   // SCALES
   // Functions that help us map our data values to their corresponding physical pixel representation
-  const brushScaleX = scaleLinear({
-    domain: [0, duration], // data values (time)
-    range: [0, xBrushMax], // corresponding pixel values
-    // nice: true, // use rounded values for start and end points
-  });
+  const brushScaleX = useMemo(
+    () =>
+      scaleLinear({
+        domain: [0, duration], // data values (time)
+        range: [0, xBrushMax], // corresponding pixel values
+        // nice: true, // use rounded values for start and end points
+      }),
+    [duration, xBrushMax]
+  );
   const brushScaleY = scaleLinear();
+
+  // update the brush selection on resize if there currently is a selection
+  useEffect(() => {
+    if (!startTime && !endTime) return;
+    setBrushPosition({
+      start: { x: brushScaleX(startTime) },
+      end: { x: brushScaleX(endTime) },
+    });
+  }, [brushScaleX]);
 
   const playheadPosition = brushScaleX(time);
 
@@ -102,16 +121,18 @@ const ProgressBar = ({ videoReady }, ref) => {
               <Thumbnails maxWidth={maxWidth} />
               <Group>
                 <Brush
-                  innerRef={brushRef}
                   xScale={brushScaleX}
                   yScale={brushScaleY}
                   width={xBrushMax}
                   height={50}
+                  key={brushPosition ? `${brushPosition.start.x},${brushPosition.end.x}` : ''}
+                  initialBrushPosition={brushPosition}
                   handleSize={8}
                   resizeTriggerAreas={['left', 'right']}
                   onClick={handleSeek}
                   onChange={handleChange}
                   useWindowMoveEvents
+                  selectedBoxStyle={{ fill: theme.palette.primary.dark, fillOpacity: '50%' }}
                 />
               </Group>
               <Playhead xPos={playheadPosition} />

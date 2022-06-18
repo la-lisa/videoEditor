@@ -89,7 +89,7 @@ const Editor = ({ onReady }, ref) => {
     }
   }, [video]);
 
-  const syncTimeToState = useCallback(() => {
+  const syncStateToTime = useCallback(() => {
     setTime(ref.current?.currentTime);
   }, [ref, setTime]);
 
@@ -180,7 +180,7 @@ const Editor = ({ onReady }, ref) => {
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}
-                  onTimeUpdate={syncTimeToState}
+                  onTimeUpdate={syncStateToTime}
                 />
               </Box>
             </>
