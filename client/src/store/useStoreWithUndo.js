@@ -1,8 +1,8 @@
 import create from 'zustand';
-import createEditorSlice from './createEditorSlice';
+import { createUndoEditorSlice } from './createEditorSlice';
 
-const useStoreWithUndo = create((set, get) => ({
-  ...createEditorSlice(set, get),
+const useStoreWithUndo = create((set, get, api) => ({
+  ...createUndoEditorSlice(set, get, api),
 }));
 
 export default useStoreWithUndo;

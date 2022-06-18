@@ -2,7 +2,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Grid, Stack, useTheme } from '@mui/material';
 import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
-import { useDimensionChange, useEventListener } from '../hooks/hooks';
+import { useDimensionChange, useEventListener, useUploadVideo } from '../hooks/hooks';
 import useStore from '../store/useStore';
 import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_ALIGN } from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
@@ -14,13 +14,14 @@ const Editor = ({ onReady }, ref) => {
   const openDialog = useStore((state) => state.openDialog);
   const closeDialog = useStore((state) => state.closeDialog);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
-  const canvasFormatChosen = useStoreWithUndo((state) => state.canvasFormatChosen);
-  const setCanvasFormatChosen = useStoreWithUndo((state) => state.setCanvasFormatChosen);
+  const canvasFormatChosen = useStore((state) => state.canvasFormatChosen);
+  const setCanvasFormatChosen = useStore((state) => state.setCanvasFormatChosen);
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
-  const setDuration = useStoreWithUndo((state) => state.setDuration);
-  const toggleIsPlaying = useStoreWithUndo((state) => state.toggleIsPlaying);
-  const setTime = useStoreWithUndo((state) => state.setTime);
+  const setDuration = useStore((state) => state.setDuration);
+  const setEndTime = useStore((state) => state.setEndTime);
+  const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
+  const setTime = useStore((state) => state.setTime);
   const brightness = useStoreWithUndo((state) => state.brightness);
   const contrast = useStoreWithUndo((state) => state.contrast);
   const blur = useStoreWithUndo((state) => state.blur);
@@ -36,6 +37,8 @@ const Editor = ({ onReady }, ref) => {
   useEventListener('beforeunload', handleBeforeUnload);
 
   const theme = useTheme();
+
+  const uploadVideo = useUploadVideo();
 
   const Y_SPACING = 276; // div.App padding-top + padding-bottom
   const [maxHeight, setMaxHeight] = useState(window.innerHeight - Y_SPACING);
@@ -64,14 +67,20 @@ const Editor = ({ onReady }, ref) => {
     closeDialog();
   };
 
+  // upload the video to the server to get thumbnails
   useEffect(() => {
-    video &&
-      !canvasFormat &&
+    if (!video) return;
+    uploadVideo();
+  }, [video]);
+
+  useEffect(() => {
+    if (video && !canvasFormat) {
       openDialog(() => <CanvasFormatDialog />, {
         title: 'Choose Canvas Format',
         actionButton: { title: DIALOG_OK_BUTTON_TITLE, onClick: handleCanvasFormatDialogAction },
         cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: closeDialog },
       });
+    }
   }, [canvasFormat, video]);
 
   const videoUrl = useMemo(() => {
@@ -86,6 +95,7 @@ const Editor = ({ onReady }, ref) => {
 
   const handleMetadata = (e) => {
     setDuration(e.target.duration);
+    setEndTime(e.target.duration);
   };
 
   function handleKeydown(e) {

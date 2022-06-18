@@ -3,16 +3,23 @@ import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
 import {
   CANVAS_FORMATS,
+  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_DOWNLOAD_BUTTON_TITLE,
   VIDEO_FIT,
-  VIDEO_ALIGN,
-  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
 import useStoreWithUndo from '../store/useStoreWithUndo';
+import {
+  getXPos,
+  getYPos,
+  shiftValuesBrightnessDark,
+  shiftValuesBrightnessLight,
+  shiftValuesContrast,
+  shiftValuesSaturation,
+} from '../utils/utils';
 
 // https://usehooks.com/useEventListener/
 export function useEventListener(eventName, handler, element = window) {
@@ -61,8 +68,30 @@ export function useDimensionChange(handler) {
   return ref;
 }
 
-export function useWriteFile() {
+export function useUploadVideo() {
   const video = useStore((state) => state.video);
+  const setThumbUrls = useStore((state) => state.setThumbUrls);
+  const setThumbWidth = useStore((state) => state.setThumbWidth);
+  const setFilename = useStore((state) => state.setFilename);
+
+  return () => {
+    const formData = new FormData();
+    formData.append('file', video);
+    axios
+      .post('/api/ffmpeg/upload', formData)
+      .then((res) => {
+        setFilename(res.data.filename);
+        setThumbUrls(res.data.thumbs.thumbUrls);
+        setThumbWidth(res.data.thumbs.thumbWidth);
+      })
+      .catch((e) => {
+        console.error('An error occurred: ', e);
+      });
+  };
+}
+
+export function useRenderVideo() {
+  const filename = useStore((state) => state.filename);
   const resultVideoUrl = useStore((state) => state.resultVideoUrl);
   const setResultVideoUrl = useStore((state) => state.setResultVideoUrl);
   const setResultThumbUrl = useStore((state) => state.setResultThumbUrl);
@@ -73,8 +102,8 @@ export function useWriteFile() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
-  const startTime = useStoreWithUndo((state) => state.startTime);
-  const endTime = useStoreWithUndo((state) => state.endTime);
+  const startTime = useStore((state) => state.startTime);
+  const endTime = useStore((state) => state.endTime);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
   const audioVolume = useStoreWithUndo((state) => state.audioVolume);
   const brightness = useStoreWithUndo((state) => state.brightness);
@@ -86,12 +115,24 @@ export function useWriteFile() {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
-  const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
-    axios.post('/api/ffmpeg/killffmpeg').catch((e) => {
-      console.error('An error occurred: ', e);
-    });
+    axios
+      .post('/api/ffmpeg/killffmpeg')
+      .then(() =>
+        axios.delete('/api/deleteConverted', {
+          data: {
+            filename: filename,
+          },
+        })
+      )
+      .catch((e) => {
+        console.error('An error occurred while trying to kill ffmpeg process and deleting converted file(s):', e);
+      })
+      .then(() => {
+        setResultVideoUrl(null);
+        setResultVideoProgress(null);
+      });
     closeDialog();
   };
 
@@ -102,72 +143,14 @@ export function useWriteFile() {
           filename: filename,
         },
       })
+      .then(() => {
+        setResultVideoUrl(null);
+        setResultVideoProgress(null);
+      })
       .catch((e) => {
-        console.error('An error occurred', e);
+        console.error('An error occurred:', e);
       });
     closeDialog();
-  };
-
-  const shiftValuesBrightnessLight = (value) => {
-    if (value <= 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return 1.01 - (value - 100) / 200;
-    }
-  };
-
-  const shiftValuesBrightnessDark = (value) => {
-    if (value >= 100) {
-      return 1;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const shiftValuesContrast = (value) => {
-    if (value === 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return value / 100;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const shiftValuesSaturation = (value) => {
-    if (value === 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return (2 * (value - 100)) / 200 + 1;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const getYPos = () => {
-    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT) {
-      return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
-    } else if (videoAlign === VIDEO_ALIGN._BOTTOM) {
-      return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
-    } else {
-      return '0';
-    }
-  };
-
-  const getXPos = () => {
-    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
-      return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
-    } else if (videoAlign === VIDEO_ALIGN._RIGHT) {
-      return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
-    } else {
-      return '0';
-    }
   };
 
   useEffect(() => {
@@ -246,8 +229,8 @@ export function useWriteFile() {
             options: {
               w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
               h: 'ih',
-              x: getXPos(),
-              y: getYPos(),
+              x: getXPos(videoAlign, videoFit),
+              y: getYPos(videoAlign, videoFit),
             },
           }
         : [
@@ -256,8 +239,8 @@ export function useWriteFile() {
               options: {
                 w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
                 h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
-                x: getXPos(),
-                y: getYPos(),
+                x: getXPos(videoAlign, videoFit),
+                y: getYPos(videoAlign, videoFit),
                 color: videoBgColor,
               },
             },
@@ -267,30 +250,24 @@ export function useWriteFile() {
             },
           ];
 
-    let start = startTime.split(':');
-    let end = endTime.split(':');
-    let secondsStart = +start[0] * 60 * 60 + +start[1] * 60 + +start[2];
-    let secondsEnd = +end[0] * 60 * 60 + +end[1] * 60 + +end[2];
-
     const audioOptions = muteAudio
       ? { filter: 'volume', options: '0.0' }
       : { filter: 'volume', options: `${audioVolume / 100}` };
 
-    const formData = new FormData();
-    formData.append('file', video);
-    formData.append('trimTime', JSON.stringify([secondsStart, secondsEnd]));
-    formData.append('vfOptions', JSON.stringify(vfOptions));
-    formData.append('afOptions', JSON.stringify(audioOptions));
-    formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
     axios
-      .post('/api/ffmpeg/encode', formData)
+      .post('/api/ffmpeg/encode', {
+        filename,
+        trimTime: [startTime, endTime],
+        vfOptions,
+        afOptions: audioOptions,
+        adjustOptions: adjustmentOptions,
+      })
       .then((res) => {
-        setFilename(res.data.fileName);
         setResultVideoUrl(res.data.newVideoUrl);
         setResultThumbUrl(res.data.newThumbUrl);
       })
       .catch((e) => {
-        console.error('An error occurred: ', e);
+        console.error('An error occurred:', e);
       });
   };
 }

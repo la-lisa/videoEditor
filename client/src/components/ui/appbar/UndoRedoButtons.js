@@ -7,7 +7,7 @@ export default function UndoRedoButtons() {
 
   return (
     <Stack direction="row">
-      <Button startIcon={<Undo />} onClick={undo} disabled={getState().prevStates.length <= 1}>
+      <Button startIcon={<Undo />} onClick={undo} disabled={getState().prevStates.length < 1}>
         undo
       </Button>
       <Button endIcon={<Redo />} onClick={redo} disabled={!getState().futureStates.length}>
