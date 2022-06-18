@@ -8,8 +8,8 @@ import { scaleLinear } from '@visx/scale';
 import useStore from '../store/useStore';
 import { clamp } from '../utils/utils';
 import * as PropTypes from 'prop-types';
+import { useDebouncedCallback } from 'beautiful-react-hooks';
 
-// TODO debounce handleChange
 const ProgressBar = ({ videoReady }, ref) => {
   const isPlaying = useStore((state) => state.isPlaying);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
@@ -47,8 +47,7 @@ const ProgressBar = ({ videoReady }, ref) => {
     }
   };
 
-  // TODO debounce syncing to store
-  const handleChange = (bounds) => {
+  const handleChange = useDebouncedCallback((bounds) => {
     if (!bounds) return;
     if (ref.current) {
       const domainMin = brushScaleX.domain()[0];
@@ -57,7 +56,7 @@ const ProgressBar = ({ videoReady }, ref) => {
       setStartTime(Math.max(bounds.x0, 0));
       setEndTime(Math.min(bounds.x1, domainMax));
     }
-  };
+  });
 
   const svgRef = useRef(null);
   const [maxWidth, setMaxWidth] = useState(0);

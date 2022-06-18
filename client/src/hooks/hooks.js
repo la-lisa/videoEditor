@@ -102,6 +102,7 @@ export function useRenderVideo() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
+  const duration = useStore((state) => state.duration);
   const startTime = useStore((state) => state.startTime);
   const endTime = useStore((state) => state.endTime);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
@@ -257,7 +258,7 @@ export function useRenderVideo() {
     axios
       .post('/api/ffmpeg/encode', {
         filename,
-        trimTime: [startTime, endTime],
+        trimTime: [startTime || 0, endTime || duration],
         vfOptions,
         afOptions: audioOptions,
         adjustOptions: adjustmentOptions,
