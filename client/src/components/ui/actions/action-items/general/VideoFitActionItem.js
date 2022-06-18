@@ -10,16 +10,26 @@ import { ReactComponent as VideoFitCover } from '../../../../../assets/video-fit
 export default function VideoFitActionItem() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
+  const setPanShot = useStoreWithUndo((state) => state.setPanShot);
+  const setZoom = useStoreWithUndo((state) => state.setZoom);
 
   const iconComponentForVideoFit = (videoFit) => {
     return videoFit === VIDEO_FIT._COVER ? VideoFitCover : VideoFitContain;
+  };
+
+  const handleChangeVideoFit = (fit) => {
+    setVideoFit(fit);
+    if (fit === VIDEO_FIT._CONTAIN) {
+      setPanShot(false);
+      setZoom(0);
+    }
   };
 
   return (
     <ActionItem Icon={() => <FitScreen />} title="Video Fit">
       {Object.values(VIDEO_FIT).map((fit) => {
         return (
-          <MenuItem key={`menuItem-${fit}`} onClick={() => setVideoFit(fit)} selected={videoFit === fit}>
+          <MenuItem key={`menuItem-${fit}`} onClick={() => handleChangeVideoFit(fit)} selected={videoFit === fit}>
             <Stack direction="row" spacing={1}>
               <ListItemIcon>
                 <SvgIcon component={iconComponentForVideoFit(fit)} inheritViewBox />
