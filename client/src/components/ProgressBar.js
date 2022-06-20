@@ -1,9 +1,8 @@
-import { Box, Button, Container, Stack, useTheme } from '@mui/material';
+import { Box, Button, Container, Stack, Typography, useTheme } from '@mui/material';
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PauseCircle, PlayCircle } from '@mui/icons-material';
 import { useDimensionChange, useRenderVideo } from '../hooks/hooks';
 import { Brush } from '@visx/brush';
-import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import useStore from '../store/useStore';
 import { clamp } from '../utils/utils';
@@ -98,6 +97,8 @@ const ProgressBar = ({ videoReady }, ref) => {
 
   const PlayPauseIcon = isPlaying ? PauseCircle : PlayCircle;
 
+  const formatTimestamp = (time) => new Date(time * 1000).toISOString().slice(14, -5);
+
   return (
     <Container
       maxWidth="xl"
@@ -108,35 +109,62 @@ const ProgressBar = ({ videoReady }, ref) => {
           <Box onClick={toggleIsPlaying} sx={{ display: 'flex', my: 1 }}>
             <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large" sx={{ cursor: 'pointer' }} />
           </Box>
+          <Box>
+            <Typography variant="caption" whiteSpace="nowrap">
+              {formatTimestamp(time)} / {formatTimestamp(duration)}
+            </Typography>
+          </Box>
           <Box
             ref={dimensionsRef}
             sx={{
               width: '100%',
-              height: '50px',
-              border: `${theme.spacing(0.25)} solid`,
-              borderColor: theme.palette.primary.dark,
-              borderRadius: theme.spacing(1.5),
+              height: '100px',
             }}
           >
-            <svg ref={svgRef} height="100%" width="100%" style={{ borderRadius: theme.spacing(1.5) }}>
-              <Thumbnails maxWidth={maxWidth} />
-              <Group>
-                <Brush
-                  xScale={brushScaleX}
-                  yScale={brushScaleY}
-                  width={maxWidth}
-                  height={50}
-                  key={brushPosition ? `${brushPosition.start.x},${brushPosition.end.x}` : ''}
-                  initialBrushPosition={brushPosition}
-                  handleSize={8}
-                  resizeTriggerAreas={['left', 'right']}
-                  onClick={handleSeek}
-                  onChange={handleChange}
-                  useWindowMoveEvents
-                  selectedBoxStyle={{ fill: theme.palette.primary.dark, fillOpacity: '50%' }}
+            <svg ref={svgRef} height="100%" width="100%">
+              <g>
+                <svg height={50} y={25}>
+                  <defs>
+                    <mask id="borderMask">
+                      <rect fill="#fff" rx={theme.spacing(1.5)} ry={theme.spacing(1.5)} width="100%" height="100%" />
+                    </mask>
+                  </defs>
+                  <g mask="url(#borderMask)">
+                    <Thumbnails maxWidth={maxWidth} />
+                    <Brush
+                      xScale={brushScaleX}
+                      yScale={brushScaleY}
+                      width={maxWidth}
+                      height={50}
+                      key={brushPosition ? `${brushPosition.start.x},${brushPosition.end.x}` : ''}
+                      initialBrushPosition={brushPosition}
+                      handleSize={8}
+                      resizeTriggerAreas={['left', 'right']}
+                      onClick={handleSeek}
+                      onChange={handleChange}
+                      useWindowMoveEvents
+                      selectedBoxStyle={{ fill: theme.palette.primary.dark, fillOpacity: '50%' }}
+                    />
+                  </g>
+                  <rect
+                    id="border"
+                    fill="none"
+                    stroke={theme.palette.primary.dark}
+                    strokeWidth={2}
+                    x={1}
+                    y={1}
+                    rx={theme.spacing(1.5)}
+                    ry={theme.spacing(1.5)}
+                    width={maxWidth - 2}
+                    height={50 - 2}
+                  />
+                </svg>
+                <Playhead xPos={playheadPosition} />
+                <SelectionTimestamps
+                  startTimeLocation={brushScaleX(startTime)}
+                  endTimeLocation={brushScaleX(endTime)}
                 />
-              </Group>
-              <Playhead xPos={playheadPosition} />
+              </g>
             </svg>
           </Box>
           <Button variant="contained" onClick={renderVideo} disabled={!videoReady}>
@@ -172,9 +200,30 @@ Thumbnails.propTypes = {
 function Playhead({ xPos }) {
   const theme = useTheme();
 
-  return <rect x={xPos} width={4} height={50} fill={theme.palette.action.active} />;
+  return <rect x={xPos} width={4} height={60} y={20} fill={theme.palette.text.primary} />;
 }
 
 Playhead.propTypes = {
   xPos: PropTypes.number.isRequired,
+};
+
+function SelectionTimestamps({ startTimeLocation, endTimeLocation }) {
+  const startTime = useStore((state) => state.startTime);
+  const endTime = useStore((state) => state.endTime);
+
+  return (
+    <g>
+      <text x={startTimeLocation} y={10} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+        {startTime?.toFixed(2)}
+      </text>
+      <text x={endTimeLocation} y={10} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+        {endTime?.toFixed(2)}
+      </text>
+    </g>
+  );
+}
+
+SelectionTimestamps.propTypes = {
+  startTimeLocation: PropTypes.number.isRequired,
+  endTimeLocation: PropTypes.number.isRequired,
 };
