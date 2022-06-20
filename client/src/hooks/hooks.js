@@ -116,6 +116,10 @@ export function useRenderVideo() {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
+  const panShot = useStoreWithUndo((state) => state.panShot);
+  const zoom = useStoreWithUndo((state) => state.zoom);
+  const outputFormat = useStoreWithUndo((state) => state.outputFormat);
+  const panDirection = useStoreWithUndo((state) => state.panDirection);
 
   const handleVideoProgressDialogCancel = () => {
     axios
@@ -255,6 +259,8 @@ export function useRenderVideo() {
       ? { filter: 'volume', options: '0.0' }
       : { filter: 'volume', options: `${audioVolume / 100}` };
 
+    const panOptions = panShot ? { filter: 'zoomPan', options: '' } : {};
+
     axios
       .post('/api/ffmpeg/encode', {
         filename,
@@ -262,6 +268,8 @@ export function useRenderVideo() {
         vfOptions,
         afOptions: audioOptions,
         adjustOptions: adjustmentOptions,
+        panOptions,
+        outputFormat
       })
       .then((res) => {
         setResultVideoUrl(res.data.newVideoUrl);

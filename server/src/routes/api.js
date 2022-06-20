@@ -6,7 +6,8 @@ const paths = require("../utils/utils");
 
 router.delete("/deleteConverted", (req, res) => {
   const filename = path.parse(req.body.filename).name;
-  const videoPath = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${filename}.mp4`;
+  const format = req.body.format;
+  const videoPath = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${filename}.${format}`;
   const thumbPath = `${paths.basePath}/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`;
 
   try {

@@ -50,6 +50,8 @@ router.post("/encode", (req, res) => {
     const adjustOptions = req.body.adjustOptions;
     const trimTime = req.body.trimTime;
     const afOptions = req.body.afOptions;
+    const panOptions = req.body.panOptions;
+    const outputFormat = req.body.outputFormat;
     const duration = {
       s: trimTime[1] - trimTime[0],
       ms: (trimTime[1] - trimTime[0]) * 1000,
@@ -63,13 +65,15 @@ router.post("/encode", (req, res) => {
       trimTime: trimTime,
       duration: duration,
       adjustOptions: adjustOptions,
+      panOptions: panOptions,
+      outputFormat: outputFormat,
     })
       .then(() =>
         generateThumbnails(resultVideoPath, filename, resultThumbPath, 1, 320)
       )
       .then(() => {
         res.json({
-          newVideoUrl: `download/video/${filename}${ext}`,
+          newVideoUrl: `download/video/${filename}.${outputFormat}`,
           newThumbUrl: `api/${paths.baseFolder}/${paths.thumb.folder}/${filename}.jpg`,
         });
       })

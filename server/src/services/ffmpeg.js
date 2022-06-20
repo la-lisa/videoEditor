@@ -13,7 +13,15 @@ const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}
 let videoEncoding;
 
 const processVideo = (req, res, filename, ext, params) => {
-  const { afOptions, vfOptions, trimTime, duration, adjustOptions } = params;
+  const {
+    afOptions,
+    vfOptions,
+    trimTime,
+    duration,
+    adjustOptions,
+    panOptions,
+    outputFormat,
+  } = params;
 
   const location = `server/uploads/${filename}${ext}`;
 
@@ -25,6 +33,8 @@ const processVideo = (req, res, filename, ext, params) => {
       .setDuration(duration.s)
       .audioFilter(afOptions)
       .addOptions("-pix_fmt yuv420p")
+      .addOptions("-crf 30")
+      .addOptions("-b:v 0")
       .on("error", (err) => {
         reject("An error occurred while processing video: " + err.message);
       })
@@ -33,7 +43,7 @@ const processVideo = (req, res, filename, ext, params) => {
         console.info("Processing finished!");
         resolve();
       })
-      .save(`${newVideoUrl}/${filename}${ext}`);
+      .save(`${newVideoUrl}/${filename}.${outputFormat}`);
   });
 };
 
