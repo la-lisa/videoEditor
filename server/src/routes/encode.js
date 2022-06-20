@@ -27,7 +27,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       uploadPath,
       path.parse(filename).name,
       thumbLocation,
-      10,
+      20,
       50
     );
 
@@ -56,7 +56,7 @@ router.post("/encode", (req, res) => {
       s: trimTime[1] - trimTime[0],
       ms: (trimTime[1] - trimTime[0]) * 1000,
     };
-    const resultVideoPath = `server/public/converted/videos/${filename}${ext}`;
+    const resultVideoPath = `server/public/converted/videos/${filename}.${outputFormat}`;
     const resultThumbPath = `server/public/converted/thumbs/`;
 
     processVideo(req, res, filename, ext, {

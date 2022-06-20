@@ -117,9 +117,7 @@ export function useRenderVideo() {
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
   const panShot = useStoreWithUndo((state) => state.panShot);
-  const zoom = useStoreWithUndo((state) => state.zoom);
   const outputFormat = useStoreWithUndo((state) => state.outputFormat);
-  const panDirection = useStoreWithUndo((state) => state.panDirection);
 
   const handleVideoProgressDialogCancel = () => {
     axios
@@ -128,6 +126,7 @@ export function useRenderVideo() {
         axios.delete('/api/deleteConverted', {
           data: {
             filename: filename,
+            format: outputFormat,
           },
         })
       )
@@ -146,6 +145,7 @@ export function useRenderVideo() {
       .delete('/api/deleteConverted', {
         data: {
           filename: filename,
+          format: outputFormat,
         },
       })
       .then(() => {
@@ -269,7 +269,7 @@ export function useRenderVideo() {
         afOptions: audioOptions,
         adjustOptions: adjustmentOptions,
         panOptions,
-        outputFormat
+        outputFormat,
       })
       .then((res) => {
         setResultVideoUrl(res.data.newVideoUrl);
