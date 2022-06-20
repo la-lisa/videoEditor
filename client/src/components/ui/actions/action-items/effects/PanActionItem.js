@@ -1,12 +1,11 @@
 import React from 'react';
 import ActionItem from '../../ActionItem';
-import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import CameraFrontIcon from '@mui/icons-material/CameraFront';
 import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
-import { Box, capitalize, ListItemText, MenuItem, Slider, Stack, Switch, Typography } from '@mui/material';
+import { Box, capitalize, ListItemText, MenuItem, Stack, Switch, Typography } from '@mui/material';
 import { PAN_DIRECTION, VIDEO_FIT } from '../../../../../utils/utils';
 
-export default function PanShotActionItem() {
+export default function PanActionItem() {
   return (
     <ActionItem Icon={() => <CameraFrontIcon />} title="PanShot">
       <PanShotHandles />
@@ -17,14 +16,15 @@ export default function PanShotActionItem() {
 function PanShotHandles() {
   const panShot = useStoreWithUndo((state) => state.panShot);
   const setPanShot = useStoreWithUndo((state) => state.setPanShot);
-  const zoom = useStoreWithUndo((state) => state.zoom);
-  const setZoom = useStoreWithUndo((state) => state.setZoom);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
   const setPanDirection = useStoreWithUndo((state) => state.setPanDirection);
   const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const setZoomPan = useStoreWithUndo((state) => state.setZoomPan);
+  const setZoom = useStoreWithUndo((state) => state.setZoom);
 
   const handleEnablePanShot = () => {
-    if (panShot) {
+    if (!panShot) {
+      setZoomPan(false);
       setZoom(0);
     }
     setPanShot(!panShot);
@@ -33,20 +33,8 @@ function PanShotHandles() {
   return (
     <>
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
-        <Typography gutterBottom>PanShot</Typography>
-        <ControlCameraIcon />
+        <Typography gutterBottom>Pan</Typography>
         <Switch onChange={handleEnablePanShot} checked={panShot} color="primary" />
-        <Typography gutterBottom>Zoom</Typography>
-        <Slider
-          aria-label="Zoom %"
-          onChange={(e) => setZoom(e.target.value)}
-          defaultValue={0}
-          valueLabelDisplay="auto"
-          value={zoom}
-          min={0}
-          max={100}
-          disabled={!panShot}
-        />
         <Typography gutterBottom>Panshot Direction</Typography>
         {Object.values(PAN_DIRECTION).map((direction) => {
           return (

@@ -1,4 +1,4 @@
-import { OUTPUT_FORMAT, PAN_DIRECTION, VIDEO_ALIGN, VIDEO_FIT } from '../utils/utils';
+import { OUTPUT_FORMAT, PAN_DIRECTION, VIDEO_ALIGN, VIDEO_FIT, ZOOMPAN_OPTIONS } from '../utils/utils';
 import { undoMiddleware } from 'zundo';
 
 export const createEditorSlice = (set, get) => ({
@@ -53,6 +53,10 @@ export const createUndoEditorSlice = undoMiddleware(
     setPanShot: (panShot) => set({ panShot: panShot }),
     panDirection: PAN_DIRECTION._LEFT_TO_CENTER,
     setPanDirection: (panDirection) => set({ panDirection: panDirection }),
+    zoomPan: false,
+    setZoomPan: (zoomPan) => set({ zoomPan: zoomPan }),
+    zoomPanDirection: ZOOMPAN_OPTIONS._CENTER,
+    setZoomPanDirection: (zoomPanDirection) => set({ zoomPanDirection: zoomPanDirection }),
     outputFormat: OUTPUT_FORMAT._MP4,
     setOutputFormat: (outputFormat) => set({ outputFormat: outputFormat }),
   }),

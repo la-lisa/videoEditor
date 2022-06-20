@@ -50,6 +50,7 @@ router.post("/encode", (req, res) => {
     const adjustOptions = req.body.adjustOptions;
     const trimTime = req.body.trimTime;
     const afOptions = req.body.afOptions;
+    const zoomPanOptions = req.body.zoomPanOptions;
     const panOptions = req.body.panOptions;
     const outputFormat = req.body.outputFormat;
     const duration = {
@@ -65,6 +66,7 @@ router.post("/encode", (req, res) => {
       trimTime: trimTime,
       duration: duration,
       adjustOptions: adjustOptions,
+      zoomPanOptions: zoomPanOptions,
       panOptions: panOptions,
       outputFormat: outputFormat,
     })

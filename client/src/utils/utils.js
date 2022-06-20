@@ -49,6 +49,14 @@ export const PAN_DIRECTION = {
   _BOTTOM_TO_CENTER: 'Bottom to Center',
 };
 
+export const ZOOMPAN_OPTIONS = {
+  _TOP_LEFT: 'Top Left',
+  _TOP_RIGHT: 'Top Right',
+  _CENTER: 'Center',
+  _BOTTOM_LEFT: 'Bottom Left',
+  _BOTTOM_RIGHT: 'Bottom Right',
+};
+
 export const OUTPUT_FORMAT = {
   _MP4: 'mp4',
   _WEBM: 'webm',

@@ -10,7 +10,7 @@ export default function AspectRatioActionItem() {
   const setOutputFormat = useStoreWithUndo((state) => state.setOutputFormat);
 
   return (
-    <ActionItem Icon={() => <OndemandVideoIcon />} title="Output Videoformat">
+    <ActionItem Icon={() => <OndemandVideoIcon />} title="Output Format">
       {Object.values(OUTPUT_FORMAT).map((key) => {
         return (
           <MenuItem key={`menuItem-${key}`} onClick={() => setOutputFormat(key)} selected={outputFormat === key}>

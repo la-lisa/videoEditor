@@ -19,7 +19,7 @@ const processVideo = (req, res, filename, ext, params) => {
     trimTime,
     duration,
     adjustOptions,
-    panOptions,
+    zoomPanOptions,
     outputFormat,
   } = params;
 
@@ -28,6 +28,7 @@ const processVideo = (req, res, filename, ext, params) => {
   return new Promise((resolve, reject) => {
     videoEncoding = ffmpeg(location)
       .videoFilters(adjustOptions)
+      .videoFilters(zoomPanOptions)
       .videoFilters(vfOptions)
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
