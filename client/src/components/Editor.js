@@ -75,14 +75,18 @@ const Editor = ({ onReady }, ref) => {
   }, [video]);
 
   useEffect(() => {
-    if (video && !canvasFormat) {
+    if (video && !canvasFormatChosen) {
       openDialog(() => <CanvasFormatDialog />, {
         title: 'Choose Canvas Format',
-        actionButton: { title: DIALOG_OK_BUTTON_TITLE, onClick: handleCanvasFormatDialogAction },
+        actionButton: {
+          title: DIALOG_OK_BUTTON_TITLE,
+          disableIfFalsy: 'canvasFormat',
+          onClick: handleCanvasFormatDialogAction,
+        },
         cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: closeDialog },
       });
     }
-  }, [canvasFormat, video]);
+  }, [canvasFormatChosen, video]);
 
   const videoUrl = useMemo(() => {
     if (video) {
