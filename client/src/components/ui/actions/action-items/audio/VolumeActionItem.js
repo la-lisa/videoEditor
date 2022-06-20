@@ -19,8 +19,8 @@ export default function VolumeActionItem() {
           valueLabelDisplay="auto"
           value={audioVolume}
           step={1}
-          min={10}
-          max={150}
+          min={0}
+          max={100}
         />
       </Box>
     </ActionItem>

@@ -19,7 +19,6 @@ const Editor = ({ onReady }, ref) => {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const setDuration = useStore((state) => state.setDuration);
-  const setEndTime = useStore((state) => state.setEndTime);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
   const setTime = useStore((state) => state.setTime);
   const brightness = useStoreWithUndo((state) => state.brightness);
@@ -32,6 +31,8 @@ const Editor = ({ onReady }, ref) => {
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const zoom = useStoreWithUndo((state) => state.zoom);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
+  const audioVolume = useStoreWithUndo((state) => state.audioVolume);
+  const muteAudio = useStoreWithUndo((state) => state.muteAudio);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -95,7 +96,6 @@ const Editor = ({ onReady }, ref) => {
 
   const handleMetadata = (e) => {
     setDuration(e.target.duration);
-    setEndTime(e.target.duration);
   };
 
   function handleKeydown(e) {
@@ -140,6 +140,10 @@ const Editor = ({ onReady }, ref) => {
     return videoAlign;
   }, [flipHorizontal, flipVertical, videoAlign]);
 
+  useEffect(() => {
+    if (ref?.current) ref.current.volume = audioVolume / 100.0;
+  }, [audioVolume]);
+
   return (
     <Grid container align="center" justifyContent="center">
       <Grid ref={dimensionsRef} item align="center" xs={10} lg={8}>
@@ -181,6 +185,7 @@ const Editor = ({ onReady }, ref) => {
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}
                   onTimeUpdate={syncStateToTime}
+                  muted={muteAudio}
                 />
               </Box>
             </>
