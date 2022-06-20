@@ -27,10 +27,11 @@ const processVideo = (req, res, filename, ext, params) => {
   const location = `server/uploads/${filename}${ext}`;
 
   return new Promise((resolve, reject) => {
-    console.log(zoomPanOptions);
+    console.log(panOptions);
     videoEncoding = ffmpeg(location)
       .videoFilters(adjustOptions)
       .videoFilters(zoomPanOptions)
+      .videoFilters(panOptions)
       .videoFilters(vfOptions)
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
