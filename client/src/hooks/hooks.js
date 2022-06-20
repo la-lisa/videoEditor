@@ -8,6 +8,7 @@ import {
   VIDEO_FIT,
   VIDEO_ALIGN,
   DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
+  PAN_DIRECTION,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -90,6 +91,8 @@ export function useWriteFile() {
   const zoom = useStoreWithUndo((state) => state.zoom);
   const outputFormat = useStoreWithUndo((state) => state.outputFormat);
   const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
+  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
   const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
@@ -157,7 +160,7 @@ export function useWriteFile() {
 
   const getYPos = () => {
     if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT) {
-      return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
+      return videoFit === VIDEO_FIT._COVER ? 'ih/2 - oh/2' : '(oh-ih)/2';
     } else if (videoAlign === VIDEO_ALIGN._BOTTOM) {
       return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
     } else {
@@ -167,11 +170,87 @@ export function useWriteFile() {
 
   const getXPos = () => {
     if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
-      return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
+      return videoFit === VIDEO_FIT._COVER ? 'iw/2 - ow/2' : '(ow-iw)/2';
     } else if (videoAlign === VIDEO_ALIGN._RIGHT) {
       return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
     } else {
       return '0';
+    }
+  };
+
+  const getPanStartY = () => {
+    if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
+      return 'if(on,y-1,ih-ih/pzoom)';
+    } else if (
+      panDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
+      panDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
+      panDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
+      panDirection === PAN_DIRECTION._RIGHT_TO_LEFT
+    ) {
+      return 'ih/2-(ih/pzoom/2)';
+    } else if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
+      return 'if(on,y+1,ih-ih/pzoom)';
+    } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
+      return 'if(on,y-1,ih/2/pzoom)';
+    } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
+      return 'if(on,y+1,ih/2/pzoom)';
+    }
+  };
+
+  const getPanStartX = () => {
+    if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
+      return 'if(on,px-1,iw-iw/pzoom)';
+    } else if (
+      panDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
+      panDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
+      panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
+      panDirection === PAN_DIRECTION._TOP_TO_CENTER
+    ) {
+      return 'iw/2-(iw/pzoom/2)';
+    } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
+      return 'if(on,x+1,iw-iw/pzoom)';
+    } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
+      return 'if(on,x-1,iw/2/pzoom)';
+    } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
+      return 'if(on,x+1,iw/2/pzoom)';
+    }
+  };
+
+  const getZoomPanY = () => {
+    if (zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
+      return 'if(on,y-1,ih-ih/pzoom)';
+    } else if (
+      zoomPanDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
+      zoomPanDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
+      zoomPanDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
+      zoomPanDirection === PAN_DIRECTION._RIGHT_TO_LEFT
+    ) {
+      return 'ih/2-(ih/pzoom/2)';
+    } else if (zoomPanDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
+      return 'if(on,y+1,ih-ih/pzoom)';
+    } else if (zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
+      return 'if(on,y-1,ih/2/pzoom)';
+    } else if (zoomPanDirection === PAN_DIRECTION._TOP_TO_CENTER) {
+      return 'if(on,y+1,ih/2/pzoom)';
+    }
+  };
+
+  const getZoomPanX = () => {
+    if (zoomPanDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
+      return 'if(on,px-1,iw-iw/pzoom)';
+    } else if (
+      zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
+      zoomPanDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
+      zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
+      zoomPanDirection === PAN_DIRECTION._TOP_TO_CENTER
+    ) {
+      return 'iw/2-(iw/pzoom/2)';
+    } else if (zoomPanDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
+      return 'if(on,x+1,iw-iw/pzoom)';
+    } else if (zoomPanDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
+      return 'if(on,x-1,iw/2/pzoom)';
+    } else if (zoomPanDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
+      return 'if(on,x+1,iw/2/pzoom)';
     }
   };
 
@@ -281,7 +360,33 @@ export function useWriteFile() {
       ? { filter: 'volume', options: '0.0' }
       : { filter: 'volume', options: `${audioVolume / 100}` };
 
-    const panOptions = panShot ? { filter: 'zoomPan', options: '' } : {};
+    const zoomPanOptions = zoomPan
+      ? {
+          filter: 'zoompan',
+          options: {
+            zoom: zoom ? `pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}` : 1,
+            x: getZoomPanX(),
+            y: getZoomPanY(),
+            d: 1,
+            fps: 30,
+            s: '1920x1080',
+          },
+        }
+      : { filter: 'setsar', options: '1' };
+
+    const panOptions = panShot
+      ? {
+          filter: 'zoompan',
+          options: {
+            zoom: zoom ? `pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}` : 1,
+            x: getPanStartX(),
+            y: getPanStartY(),
+            d: 1,
+            fps: 30,
+            s: '1920x1080',
+          },
+        }
+      : { filter: 'setsar', options: '1' };
 
     const formData = new FormData();
     formData.append('file', video);
@@ -289,6 +394,7 @@ export function useWriteFile() {
     formData.append('vfOptions', JSON.stringify(vfOptions));
     formData.append('afOptions', JSON.stringify(audioOptions));
     formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
+    formData.append('zoomPanOptions', JSON.stringify(zoomPanOptions));
     formData.append('panOptions', JSON.stringify(panOptions));
     formData.append('outputFormat', outputFormat);
     axios

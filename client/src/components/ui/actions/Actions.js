@@ -12,8 +12,9 @@ import VolumeActionItem from './action-items/audio/VolumeActionItem';
 import MuteActionItem from './action-items/audio/MuteActionItem';
 import ResetAllActionItem from './action-items/ResetAllActionItem';
 import FlipActionItem from './action-items/effects/FlipActionItem';
-import PanShotActionItem from './action-items/effects/PanShotActionItem';
+import PanActionItem from './action-items/effects/PanActionItem';
 import OutputFormatActionItem from './action-items/general/OutputFormatActionItem';
+import ZoomPanActionItem from './action-items/effects/ZoomPanActionItem';
 
 function tabProps(index) {
   return {
@@ -61,7 +62,8 @@ export default function Actions() {
                 <AdjustmentsActionItem />
                 <FlipActionItem />
                 <BackgroundActionItem />
-                <PanShotActionItem />
+                <PanActionItem />
+                <ZoomPanActionItem />
               </TabPanel>
               <TabPanel index={2} value={currentTabIdx}>
                 <ResetAllActionItem />

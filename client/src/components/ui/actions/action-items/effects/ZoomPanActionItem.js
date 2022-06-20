@@ -1,41 +1,43 @@
 import React from 'react';
 import ActionItem from '../../ActionItem';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
-import CameraFrontIcon from '@mui/icons-material/CameraFront';
 import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
 import { Box, capitalize, ListItemText, MenuItem, Slider, Stack, Switch, Typography } from '@mui/material';
-import { PAN_DIRECTION, VIDEO_FIT } from '../../../../../utils/utils';
+import { VIDEO_FIT, ZOOMPAN_OPTIONS } from '../../../../../utils/utils';
 
-export default function PanShotActionItem() {
+export default function ZoomPanActionItem() {
   return (
-    <ActionItem Icon={() => <CameraFrontIcon />} title="PanShot">
+    <ActionItem Icon={() => <ControlCameraIcon />} title="ZoomPan">
       <PanShotHandles />
     </ActionItem>
   );
 }
 
 function PanShotHandles() {
-  const panShot = useStoreWithUndo((state) => state.panShot);
-  const setPanShot = useStoreWithUndo((state) => state.setPanShot);
+  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
+  const setZoomPan = useStoreWithUndo((state) => state.setZoomPan);
   const zoom = useStoreWithUndo((state) => state.zoom);
   const setZoom = useStoreWithUndo((state) => state.setZoom);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
-  const setPanDirection = useStoreWithUndo((state) => state.setPanDirection);
+  const setZoomPanDirection = useStoreWithUndo((state) => state.setZoomPanDirection);
   const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const setPanShot = useStoreWithUndo((state) => state.setPanShot);
 
   const handleEnablePanShot = () => {
-    if (panShot) {
+    if (zoomPan) {
       setZoom(0);
     }
-    setPanShot(!panShot);
+    if (!zoomPan) {
+      setPanShot(false);
+    }
+    setZoomPan(!zoomPan);
     setVideoFit(VIDEO_FIT._COVER);
   };
   return (
     <>
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
-        <Typography gutterBottom>PanShot</Typography>
-        <ControlCameraIcon />
-        <Switch onChange={handleEnablePanShot} checked={panShot} color="primary" />
+        <Typography gutterBottom>ZoomPan</Typography>
+        <Switch onChange={handleEnablePanShot} checked={zoomPan} color="primary" />
         <Typography gutterBottom>Zoom</Typography>
         <Slider
           aria-label="Zoom %"
@@ -45,15 +47,15 @@ function PanShotHandles() {
           value={zoom}
           min={0}
           max={100}
-          disabled={!panShot}
+          disabled={!zoomPan}
         />
-        <Typography gutterBottom>Panshot Direction</Typography>
-        {Object.values(PAN_DIRECTION).map((direction) => {
+        <Typography gutterBottom>Zoompan Direction</Typography>
+        {Object.values(ZOOMPAN_OPTIONS).map((direction) => {
           return (
             <MenuItem
-              disabled={!panShot}
+              disabled={!zoomPan}
               key={direction}
-              onClick={() => setPanDirection(direction)}
+              onClick={() => setZoomPanDirection(direction)}
               selected={panDirection === direction}
             >
               <Stack direction="row" spacing={1}>
