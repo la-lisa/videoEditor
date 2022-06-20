@@ -21,6 +21,25 @@ router.delete("/deleteConverted", (req, res) => {
   }
 });
 
+router.post("/deleteUploadsThumbs", (req, res) => {
+  const filename = req.body.filename;
+  const thumbName = filename.split(".")[0];
+  const videoPath = `${paths.uploadFolder}/${filename}`;
+  let thumbPath = `${paths.basePath}/${paths.thumb.uploadThumb}/`;
+
+  try {
+    if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
+    for (let i = 1; i <= 20; i++) {
+      let tempthumbName = thumbName + `-${i.toString().padStart(2, "0")}`;
+      if (fs.existsSync(`${thumbPath}/${tempthumbName}.jpg`))
+        fs.unlinkSync(`${thumbPath}/${tempthumbName}.jpg`);
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500);
+  }
+});
+
 router.get("/download/video/:filename", (req, res) => {
   res.download(
     `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}/${req.params.filename}`

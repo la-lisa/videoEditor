@@ -45,12 +45,14 @@ const Editor = ({ onReady }, ref) => {
   const panShot = useStoreWithUndo((state) => state.panShot);
   const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
   const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const filename = useStore((state) => state.filename);
   const [zoomTransform, setZoomTransform] = useState(1);
   const [zoomTranslateX, setZoomTranslateX] = useState(0);
   const [zoomTranslateY, setZoomTranslateY] = useState(0);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
+  useEventListener('unload', handleUnload);
 
   const theme = useTheme();
 
@@ -127,6 +129,13 @@ const Editor = ({ onReady }, ref) => {
   function handleBeforeUnload(e) {
     e.preventDefault();
     e.returnValue = '';
+  }
+
+  function handleUnload() {
+    const ua = JSON.stringify({ filename: filename });
+    const headers = { type: 'application/json' };
+    const blob = new Blob([ua], headers);
+    navigator.sendBeacon('/api/deleteUploadsThumbs', blob);
   }
 
   const showVideo = useMemo(() => {
