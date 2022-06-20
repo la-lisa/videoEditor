@@ -15,14 +15,14 @@ import {
 import { ReactComponent as Logo } from '../../../assets/logo.svg';
 import UndoRedoButtons from './UndoRedoButtons';
 import { createTheme } from '@mui/material/styles';
-import { useWriteFile } from '../../../hooks/hooks';
-import useStoreWithUndo from '../../../store/useStoreWithUndo';
+import { useRenderVideo } from '../../../hooks/hooks';
+import useStore from '../../../store/useStore';
 
 export default function CustomAppBar({ videoReady }) {
-  const writeFile = useWriteFile();
+  const renderVideo = useRenderVideo();
   const theme = useTheme();
 
-  const showButtons = useStoreWithUndo((state) => state.canvasFormatChosen);
+  const showButtons = useStore((state) => state.canvasFormatChosen);
 
   const createButtonTheme = (theme) =>
     createTheme({
@@ -50,14 +50,14 @@ export default function CustomAppBar({ videoReady }) {
               <Link component={IconButton} href="/" edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
                 <SvgIcon fontSize="large" component={Logo} inheritViewBox />
               </Link>
-              <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+              <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, userSelect: 'none' }}>
                 ezvideo
               </Typography>
             </Stack>
             {showButtons && (
               <ThemeProvider theme={(theme) => createButtonTheme(theme)}>
                 <UndoRedoButtons />
-                <Button onClick={writeFile} disabled={!videoReady}>
+                <Button onClick={renderVideo} disabled={!videoReady}>
                   render
                 </Button>
               </ThemeProvider>

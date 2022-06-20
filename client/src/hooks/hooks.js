@@ -3,18 +3,27 @@ import VideoProgressDialog from '../components/ui/dialogs/VideoProgressDialog';
 import useStore from '../store/useStore';
 import {
   CANVAS_FORMATS,
+  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_DOWNLOAD_BUTTON_TITLE,
   VIDEO_FIT,
-  VIDEO_ALIGN,
-  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
-  PAN_DIRECTION,
-  ZOOMPAN_OPTIONS,
+  getZoomPanX,
+  getZoomPanY,
+  getPanStartX,
+  getPanStartY,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
 import VideoProcessingFinishedDialog from '../components/ui/dialogs/VideoProcessingFinishedDialog';
 import useStoreWithUndo from '../store/useStoreWithUndo';
+import {
+  getXPos,
+  getYPos,
+  shiftValuesBrightnessDark,
+  shiftValuesBrightnessLight,
+  shiftValuesContrast,
+  shiftValuesSaturation,
+} from '../utils/utils';
 
 // https://usehooks.com/useEventListener/
 export function useEventListener(eventName, handler, element = window) {
@@ -63,8 +72,30 @@ export function useDimensionChange(handler) {
   return ref;
 }
 
-export function useWriteFile() {
+export function useUploadVideo() {
   const video = useStore((state) => state.video);
+  const setThumbUrls = useStore((state) => state.setThumbUrls);
+  const setThumbWidth = useStore((state) => state.setThumbWidth);
+  const setFilename = useStore((state) => state.setFilename);
+
+  return () => {
+    const formData = new FormData();
+    formData.append('file', video);
+    axios
+      .post('/api/ffmpeg/upload', formData)
+      .then((res) => {
+        setFilename(res.data.filename);
+        setThumbUrls(res.data.thumbs.thumbUrls);
+        setThumbWidth(res.data.thumbs.thumbWidth);
+      })
+      .catch((e) => {
+        console.error('An error occurred: ', e);
+      });
+  };
+}
+
+export function useRenderVideo() {
+  const filename = useStore((state) => state.filename);
   const resultVideoUrl = useStore((state) => state.resultVideoUrl);
   const setResultVideoUrl = useStore((state) => state.setResultVideoUrl);
   const setResultThumbUrl = useStore((state) => state.setResultThumbUrl);
@@ -75,8 +106,9 @@ export function useWriteFile() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
-  const startTime = useStoreWithUndo((state) => state.startTime);
-  const endTime = useStoreWithUndo((state) => state.endTime);
+  const duration = useStore((state) => state.duration);
+  const startTime = useStore((state) => state.startTime);
+  const endTime = useStore((state) => state.endTime);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
   const audioVolume = useStoreWithUndo((state) => state.audioVolume);
   const brightness = useStoreWithUndo((state) => state.brightness);
@@ -94,12 +126,25 @@ export function useWriteFile() {
   const panDirection = useStoreWithUndo((state) => state.panDirection);
   const zoomPan = useStoreWithUndo((state) => state.zoomPan);
   const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
-  const [filename, setFilename] = useState('');
 
   const handleVideoProgressDialogCancel = () => {
-    axios.post('/api/ffmpeg/killffmpeg').catch((e) => {
-      console.error('An error occurred: ', e);
-    });
+    axios
+      .post('/api/ffmpeg/killffmpeg')
+      .then(() =>
+        axios.delete('/api/deleteConverted', {
+          data: {
+            filename: filename,
+            format: outputFormat,
+          },
+        })
+      )
+      .catch((e) => {
+        console.error('An error occurred while trying to kill ffmpeg process and deleting converted file(s):', e);
+      })
+      .then(() => {
+        setResultVideoUrl(null);
+        setResultVideoProgress(null);
+      });
     closeDialog();
   };
 
@@ -111,135 +156,14 @@ export function useWriteFile() {
           format: outputFormat,
         },
       })
+      .then(() => {
+        setResultVideoUrl(null);
+        setResultVideoProgress(null);
+      })
       .catch((e) => {
-        console.error('An error occurred', e);
+        console.error('An error occurred:', e);
       });
     closeDialog();
-  };
-
-  const shiftValuesBrightnessLight = (value) => {
-    if (value <= 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return 1.01 - (value - 100) / 200;
-    }
-  };
-
-  const shiftValuesBrightnessDark = (value) => {
-    if (value >= 100) {
-      return 1;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const shiftValuesContrast = (value) => {
-    if (value === 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return value / 100;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const shiftValuesSaturation = (value) => {
-    if (value === 100) {
-      return 1;
-    }
-    if (value > 100) {
-      return (2 * (value - 100)) / 200 + 1;
-    }
-    if (value < 100) {
-      return value / 100;
-    }
-  };
-
-  const getYPos = () => {
-    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT) {
-      return videoFit === VIDEO_FIT._COVER ? 'ih/2 - oh/2' : '(oh-ih)/2';
-    } else if (videoAlign === VIDEO_ALIGN._BOTTOM) {
-      return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
-    } else {
-      return '0';
-    }
-  };
-
-  const getXPos = () => {
-    if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
-      return videoFit === VIDEO_FIT._COVER ? 'iw/2 - ow/2' : '(ow-iw)/2';
-    } else if (videoAlign === VIDEO_ALIGN._RIGHT) {
-      return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
-    } else {
-      return '0';
-    }
-  };
-
-  const getPanStartY = () => {
-    if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
-      return 'if(on,y-1,ih-ih/pzoom)';
-    } else if (
-      panDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
-      panDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
-      panDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
-      panDirection === PAN_DIRECTION._RIGHT_TO_LEFT
-    ) {
-      return 'ih/2-(ih/pzoom/2)';
-    } else if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
-      return 'if(on,y+1,ih-ih/pzoom)';
-    } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
-      return 'if(on,y-1,ih/2/pzoom)';
-    } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
-      return 'if(on,y+1,ih/2/pzoom)';
-    }
-  };
-
-  const getPanStartX = () => {
-    if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
-      return 'if(on,px-1,iw-iw/pzoom)';
-    } else if (
-      panDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
-      panDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
-      panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
-      panDirection === PAN_DIRECTION._TOP_TO_CENTER
-    ) {
-      return 'iw/2-(iw/pzoom/2)';
-    } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
-      return 'if(on,x+1,iw-iw/pzoom)';
-    } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
-      return 'if(on,x-1,iw/2/pzoom)';
-    } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
-      return 'if(on,x+1,iw/2/pzoom)';
-    }
-  };
-
-  const getZoomPanY = () => {
-    if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
-      return 'ih/2-(ih/pzoom/2)';
-    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT) {
-      return 0;
-    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
-      return 'y';
-    } else if (
-      zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT ||
-      zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
-    ) {
-      return 7200;
-    }
-  };
-
-  const getZoomPanX = () => {
-    if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
-      return 'iw/2-(iw/pzoom/2)';
-    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
-      return 0;
-    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
-      return 'iw/2+iw/zoom/2';
-    }
   };
 
   useEffect(() => {
@@ -318,8 +242,8 @@ export function useWriteFile() {
             options: {
               w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
               h: 'ih',
-              x: getXPos(),
-              y: getYPos(),
+              x: getXPos(videoAlign, videoFit),
+              y: getYPos(videoAlign, videoFit),
             },
           }
         : [
@@ -328,8 +252,8 @@ export function useWriteFile() {
               options: {
                 w: `max(iw\\,ih*(${CANVAS_FORMATS[canvasFormat].title}))`,
                 h: `ow/(${CANVAS_FORMATS[canvasFormat].title})`,
-                x: getXPos(),
-                y: getYPos(),
+                x: getXPos(videoAlign, videoFit),
+                y: getYPos(videoAlign, videoFit),
                 color: videoBgColor,
               },
             },
@@ -338,11 +262,6 @@ export function useWriteFile() {
               options: '1',
             },
           ];
-
-    let start = startTime.split(':');
-    let end = endTime.split(':');
-    let secondsStart = +start[0] * 60 * 60 + +start[1] * 60 + +start[2];
-    let secondsEnd = +end[0] * 60 * 60 + +end[1] * 60 + +end[2];
 
     const audioOptions = muteAudio
       ? { filter: 'volume', options: '0.0' }
@@ -358,9 +277,11 @@ export function useWriteFile() {
             {
               filter: 'zoompan',
               options: {
-                zoom: `min(pzoom + ${(zoom / 1000 + 1) / (secondsEnd - secondsStart)}, ${zoom / 100 + 1})`,
-                x: getZoomPanX(),
-                y: getZoomPanY(),
+                zoom: `min(pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}, ${
+                  zoom / 100 + 1
+                })`,
+                x: getZoomPanX(zoomPanDirection),
+                y: getZoomPanY(zoomPanDirection),
                 d: 1,
                 fps: 30,
                 s: '1920x1080',
@@ -373,9 +294,9 @@ export function useWriteFile() {
       ? {
           filter: 'zoompan',
           options: {
-            zoom: zoom ? `pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}` : 1,
-            x: getPanStartX(),
-            y: getPanStartY(),
+            zoom: zoom ? `pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}` : 1,
+            x: getPanStartX(panDirection),
+            y: getPanStartY(panDirection),
             d: 1,
             fps: 30,
             s: '1920x1080',
@@ -383,24 +304,23 @@ export function useWriteFile() {
         }
       : { filter: 'setsar', options: '1' };
 
-    const formData = new FormData();
-    formData.append('file', video);
-    formData.append('trimTime', JSON.stringify([secondsStart, secondsEnd]));
-    formData.append('vfOptions', JSON.stringify(vfOptions));
-    formData.append('afOptions', JSON.stringify(audioOptions));
-    formData.append('adjustOptions', JSON.stringify(adjustmentOptions));
-    formData.append('zoomPanOptions', JSON.stringify(zoomPanOptions));
-    formData.append('panOptions', JSON.stringify(panOptions));
-    formData.append('outputFormat', outputFormat);
     axios
-      .post('/api/ffmpeg/encode', formData)
+      .post('/api/ffmpeg/encode', {
+        filename,
+        trimTime: [startTime || 0, endTime || duration],
+        vfOptions,
+        afOptions: audioOptions,
+        adjustOptions: adjustmentOptions,
+        panOptions,
+        zoomPanOptions,
+        outputFormat,
+      })
       .then((res) => {
-        setFilename(res.data.fileName);
         setResultVideoUrl(res.data.newVideoUrl);
         setResultThumbUrl(res.data.newThumbUrl);
       })
       .catch((e) => {
-        console.error('An error occurred: ', e);
+        console.error('An error occurred:', e);
       });
   };
 }

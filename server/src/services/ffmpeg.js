@@ -7,34 +7,33 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 ffmpeg.setFfprobePath(ffprobePath);
 
 const ffmpegOnProgress = require("ffmpeg-on-progress");
-const fs = require("fs");
 const logProgress = require("../routes/socket");
 
 const newVideoUrl = `${paths.basePath}/${paths.baseFolder}/${paths.video.folder}`;
 let videoEncoding;
 
-const processVideo = (req, res, location, filename, params) => {
+const processVideo = (req, res, filename, ext, params) => {
   const {
     afOptions,
     vfOptions,
     trimTime,
     duration,
     adjustOptions,
-    zoomPanOptions,
     panOptions,
+    zoomPanOptions,
     outputFormat,
   } = params;
 
+  const location = `server/uploads/${filename}${ext}`;
+
   return new Promise((resolve, reject) => {
-    console.log(vfOptions);
-    console.log(zoomPanOptions);
     videoEncoding = ffmpeg(location)
-      .videoFilters(JSON.parse(adjustOptions))
-      .videoFilters(JSON.parse(zoomPanOptions))
-      .videoFilters(JSON.parse(vfOptions))
+      .videoFilters(adjustOptions)
+      .videoFilters(zoomPanOptions)
+      .videoFilters(vfOptions)
       .setStartTime(trimTime[0])
       .setDuration(duration.s)
-      .audioFilter(JSON.parse(afOptions))
+      .audioFilter(afOptions)
       .addOptions("-pix_fmt yuv420p")
       .addOptions("-crf 30")
       .addOptions("-b:v 0")
@@ -43,29 +42,24 @@ const processVideo = (req, res, location, filename, params) => {
       })
       .on("progress", ffmpegOnProgress(logProgress, duration.ms))
       .on("end", () => {
-        console.log("Processing finished!");
-        try {
-          fs.unlinkSync(location);
-          //file removed
-          resolve();
-        } catch (err) {
-          reject(err.message);
-        }
+        console.info("Processing finished!");
+        resolve();
       })
       .save(`${newVideoUrl}/${filename}.${outputFormat}`);
   });
 };
 
 const killFFmpegProcess = () => {
-  videoEncoding.kill();
-  console.log("Process killed!");
-  try {
-    fs.unlinkSync(videoEncoding._currentInput.source);
-    fs.unlinkSync(videoEncoding._outputs.target);
-    //file removed
-  } catch (err) {
-    console.log(err.message);
-  }
+  return new Promise((resolve, reject) => {
+    try {
+      videoEncoding.kill();
+      console.info("Process killed!");
+      resolve();
+    } catch (err) {
+      console.error(err.message);
+      reject(err.message);
+    }
+  });
 };
 
 module.exports = {

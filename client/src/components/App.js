@@ -5,7 +5,7 @@ import Actions from './ui/actions/Actions';
 import ModalDialog from './ui/dialogs/ModalDialog';
 import CustomAppBar from './ui/appbar/CustomAppBar';
 import { useRef, useState } from 'react';
-import Timeline from './Timeline';
+import ProgressBar from './ProgressBar';
 import composeGlobalTheme from './ui/theme/globalTheme';
 
 export default function App() {
@@ -43,7 +43,7 @@ export default function App() {
             <Editor ref={videoElemRef} onReady={handleVideoReady} />
             {videoReady && <Actions />}
           </Container>
-          {videoReady && <Timeline ref={videoElemRef} videoReady={videoReady} />}
+          {videoReady && <ProgressBar ref={videoElemRef} videoReady={videoReady} />}
           <ModalDialog />
         </Box>
       </Box>

@@ -4,7 +4,6 @@ import { ExpandMore } from '@mui/icons-material';
 import TabPanel from './TabPanel';
 import AspectRatioActionItem from './action-items/general/AspectRatioActionItem';
 import VideoFitActionItem from './action-items/general/VideoFitActionItem';
-import TrimActionItem from './action-items/general/TrimActionItem';
 import AlignmentActionItem from './action-items/general/AlignmentActionItem';
 import AdjustmentsActionItem from './action-items/effects/AdjustmentsActionItem';
 import BackgroundActionItem from './action-items/effects/BackgroundActionItem';
@@ -53,7 +52,6 @@ export default function Actions() {
                 <ResetAllActionItem />
                 <AspectRatioActionItem />
                 <VideoFitActionItem />
-                <TrimActionItem />
                 <AlignmentActionItem />
                 <OutputFormatActionItem />
               </TabPanel>

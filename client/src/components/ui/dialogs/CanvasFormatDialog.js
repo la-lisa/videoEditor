@@ -2,6 +2,7 @@ import { FormControl, FormControlLabel, Grid, RadioGroup } from '@mui/material';
 import Radio from '@mui/material/Radio';
 import { CANVAS_FORMATS } from '../../../utils/utils';
 import useStoreWithUndo from '../../../store/useStoreWithUndo';
+
 export default function CanvasFormatDialog() {
   const format = useStoreWithUndo((state) => state.canvasFormat);
   const setFormat = useStoreWithUndo((state) => state.setCanvasFormat);

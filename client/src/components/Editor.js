@@ -2,15 +2,9 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Grid, Stack, useTheme } from '@mui/material';
 import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
-import { useDimensionChange, useEventListener } from '../hooks/hooks';
+import { useDimensionChange, useEventListener, useUploadVideo } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import {
-  CANVAS_FORMATS,
-  DIALOG_CANCEL_BUTTON_TITLE,
-  DIALOG_OK_BUTTON_TITLE,
-  VIDEO_ALIGN,
-  ZOOMPAN_OPTIONS,
-} from '../utils/utils';
+import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_ALIGN } from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
 import useStoreWithUndo from '../store/useStoreWithUndo';
 
@@ -20,13 +14,13 @@ const Editor = ({ onReady }, ref) => {
   const openDialog = useStore((state) => state.openDialog);
   const closeDialog = useStore((state) => state.closeDialog);
   const canvasFormat = useStoreWithUndo((state) => state.canvasFormat);
-  const canvasFormatChosen = useStoreWithUndo((state) => state.canvasFormatChosen);
-  const setCanvasFormatChosen = useStoreWithUndo((state) => state.setCanvasFormatChosen);
+  const canvasFormatChosen = useStore((state) => state.canvasFormatChosen);
+  const setCanvasFormatChosen = useStore((state) => state.setCanvasFormatChosen);
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
-  const setDuration = useStoreWithUndo((state) => state.setDuration);
-  const toggleIsPlaying = useStoreWithUndo((state) => state.toggleIsPlaying);
-  const setTime = useStoreWithUndo((state) => state.setTime);
+  const setDuration = useStore((state) => state.setDuration);
+  const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
+  const setTime = useStore((state) => state.setTime);
   const brightness = useStoreWithUndo((state) => state.brightness);
   const contrast = useStoreWithUndo((state) => state.contrast);
   const blur = useStoreWithUndo((state) => state.blur);
@@ -36,21 +30,16 @@ const Editor = ({ onReady }, ref) => {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const zoom = useStoreWithUndo((state) => state.zoom);
-  const time = useStoreWithUndo((state) => state.time);
-  const duration = useStoreWithUndo((state) => state.duration);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
-  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
-  const panShot = useStoreWithUndo((state) => state.panShot);
-  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
-  const panDirection = useStoreWithUndo((state) => state.panDirection);
-  const [zoomTransform, setZoomTransform] = useState(1);
-  const [zoomTranslateX, setZoomTranslateX] = useState(0);
-  const [zoomTranslateY, setZoomTranslateY] = useState(0);
+  const audioVolume = useStoreWithUndo((state) => state.audioVolume);
+  const muteAudio = useStoreWithUndo((state) => state.muteAudio);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
 
   const theme = useTheme();
+
+  const uploadVideo = useUploadVideo();
 
   const Y_SPACING = 276; // div.App padding-top + padding-bottom
   const [maxHeight, setMaxHeight] = useState(window.innerHeight - Y_SPACING);
@@ -79,15 +68,25 @@ const Editor = ({ onReady }, ref) => {
     closeDialog();
   };
 
+  // upload the video to the server to get thumbnails
   useEffect(() => {
-    video &&
-      !canvasFormat &&
+    if (!video) return;
+    uploadVideo();
+  }, [video]);
+
+  useEffect(() => {
+    if (video && !canvasFormatChosen) {
       openDialog(() => <CanvasFormatDialog />, {
         title: 'Choose Canvas Format',
-        actionButton: { title: DIALOG_OK_BUTTON_TITLE, onClick: handleCanvasFormatDialogAction },
+        actionButton: {
+          title: DIALOG_OK_BUTTON_TITLE,
+          disableIfFalsy: 'canvasFormat',
+          onClick: handleCanvasFormatDialogAction,
+        },
         cancelButton: { title: DIALOG_CANCEL_BUTTON_TITLE, onClick: closeDialog },
       });
-  }, [canvasFormat, video]);
+    }
+  }, [canvasFormatChosen, video]);
 
   const videoUrl = useMemo(() => {
     if (video) {
@@ -95,7 +94,7 @@ const Editor = ({ onReady }, ref) => {
     }
   }, [video]);
 
-  const syncTimeToState = useCallback(() => {
+  const syncStateToTime = useCallback(() => {
     setTime(ref.current?.currentTime);
   }, [ref, setTime]);
 
@@ -123,39 +122,6 @@ const Editor = ({ onReady }, ref) => {
     if (showVideo === true && onReady) onReady();
   }, [showVideo, onReady]);
 
-  useEffect(() => {
-    if (!zoomPan) {
-      setZoomTransform(1);
-    }
-  }, [zoomPan]);
-
-  useEffect(() => {
-    if (zoomPan) {
-      setZoomTransform(zoomTransform + zoom / 100 / duration);
-      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
-        setZoomTranslateX(zoomTranslateX - width / 2 / duration);
-      } else if (
-        zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT ||
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
-      ) {
-        setZoomTranslateX(zoomTranslateX + width / 2 / duration);
-      } else {
-        setZoomTranslateX(0);
-      }
-
-      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
-        setZoomTranslateY(zoomTranslateY - height / 2 / duration);
-      } else if (
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT ||
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
-      ) {
-        setZoomTranslateY(zoomTranslateY + height / 2 / duration);
-      } else {
-        setZoomTranslateY(0);
-      }
-    }
-  }, [time]);
-
   const [width, height] = useMemo(() => {
     if (!maxWidth || !maxHeight || !canvasFormat) return [0, 0];
     // try to use full width first
@@ -177,6 +143,10 @@ const Editor = ({ onReady }, ref) => {
     }
     return videoAlign;
   }, [flipHorizontal, flipVertical, videoAlign]);
+
+  useEffect(() => {
+    if (ref?.current) ref.current.volume = audioVolume / 100.0;
+  }, [audioVolume]);
 
   return (
     <Grid container align="center" justifyContent="center">
@@ -208,9 +178,9 @@ const Editor = ({ onReady }, ref) => {
                     height: '100%',
                     objectFit: videoFit,
                     objectPosition: objectPosition,
-                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${
-                      flipVertical ? 180 : 0
-                    }deg) scale(${zoomTransform}) translate(${zoomTranslateX}px, ${zoomTranslateY}px)`,
+                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${
+                      zoom / 100 + 1
+                    })`,
                     filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${
                       saturation / 100
                     }) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) blur(${blur}px)`,
@@ -218,7 +188,8 @@ const Editor = ({ onReady }, ref) => {
                   ref={ref}
                   src={videoUrl}
                   onLoadedMetadata={handleMetadata}
-                  onTimeUpdate={syncTimeToState}
+                  onTimeUpdate={syncStateToTime}
+                  muted={muteAudio}
                 />
               </Box>
             </>

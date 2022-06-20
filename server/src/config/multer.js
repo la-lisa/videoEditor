@@ -1,12 +1,12 @@
 const multer = require("multer");
 const path = require("path");
+const { nanoid } = require("nanoid");
 
 const upload = multer({
   storage: multer.diskStorage({
     destination: "./server/uploads/",
     filename: function (req, file, cb) {
-      // user shortid.generate() alone if no extension is needed
-      cb(null, Date.now() + path.parse(file.originalname).ext);
+      cb(null, `${nanoid(12)}${path.parse(file.originalname).ext}`);
     },
   }),
 });
