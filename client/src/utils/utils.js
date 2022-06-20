@@ -116,7 +116,7 @@ export const shiftValuesSaturation = (value) => {
 
 export const getYPos = (videoAlign, videoFit) => {
   if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._LEFT || videoAlign === VIDEO_ALIGN._RIGHT) {
-    return videoFit === VIDEO_FIT._COVER ? 'ih/2' : '(oh-ih)/2';
+    return videoFit === VIDEO_FIT._COVER ? 'ih/2 - oh/2' : '(oh-ih)/2';
   } else if (videoAlign === VIDEO_ALIGN._BOTTOM) {
     return videoFit === VIDEO_FIT._COVER ? 'ih' : '(oh-ih)';
   } else {
@@ -126,7 +126,7 @@ export const getYPos = (videoAlign, videoFit) => {
 
 export const getXPos = (videoAlign, videoFit) => {
   if (videoAlign === VIDEO_ALIGN._CENTER || videoAlign === VIDEO_ALIGN._TOP || videoAlign === VIDEO_ALIGN._BOTTOM) {
-    return videoFit === VIDEO_FIT._COVER ? 'iw/2' : '(ow-iw)/2';
+    return videoFit === VIDEO_FIT._COVER ? 'iw/2 - ow/2' : '(ow-iw)/2';
   } else if (videoAlign === VIDEO_ALIGN._RIGHT) {
     return videoFit === VIDEO_FIT._COVER ? 'iw' : '(ow-iw)';
   } else {

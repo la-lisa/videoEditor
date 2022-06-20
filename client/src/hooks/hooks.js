@@ -277,9 +277,10 @@ export function useRenderVideo() {
             {
               filter: 'zoompan',
               options: {
-                zoom: `min(pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}, ${
-                  zoom / 100 + 1
-                })`,
+                zoom: `min(pzoom + ${
+                  ((zoom / 3000) * (startTime && endTime ? endTime - startTime : duration)) /
+                  (startTime && endTime ? endTime - startTime : duration)
+                }, ${zoom / 100 + 1})`,
                 x: getZoomPanX(zoomPanDirection),
                 y: getZoomPanY(zoomPanDirection),
                 d: 1,
@@ -292,14 +293,12 @@ export function useRenderVideo() {
 
     const panOptions = panShot
       ? {
-          filter: 'zoompan',
+          filter: 'crop',
           options: {
-            zoom: zoom ? `pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}` : 1,
+            w: `ih*${CANVAS_FORMATS[canvasFormat].title}`,
+            h: 'ih',
             x: getPanStartX(panDirection),
             y: getPanStartY(panDirection),
-            d: 1,
-            fps: 30,
-            s: '1920x1080',
           },
         }
       : { filter: 'setsar', options: '1' };

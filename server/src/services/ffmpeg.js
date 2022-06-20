@@ -27,6 +27,7 @@ const processVideo = (req, res, filename, ext, params) => {
   const location = `server/uploads/${filename}${ext}`;
 
   return new Promise((resolve, reject) => {
+    console.log(zoomPanOptions);
     videoEncoding = ffmpeg(location)
       .videoFilters(adjustOptions)
       .videoFilters(zoomPanOptions)

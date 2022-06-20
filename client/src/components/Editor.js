@@ -4,7 +4,13 @@ import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
 import { useDimensionChange, useEventListener, useUploadVideo } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import { CANVAS_FORMATS, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_ALIGN } from '../utils/utils';
+import {
+  CANVAS_FORMATS,
+  DIALOG_CANCEL_BUTTON_TITLE,
+  DIALOG_OK_BUTTON_TITLE,
+  VIDEO_ALIGN,
+  ZOOMPAN_OPTIONS,
+} from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
 import useStoreWithUndo from '../store/useStoreWithUndo';
 
@@ -30,9 +36,18 @@ const Editor = ({ onReady }, ref) => {
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const zoom = useStoreWithUndo((state) => state.zoom);
+  const time = useStore((state) => state.time);
+  const duration = useStore((state) => state.duration);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
   const audioVolume = useStoreWithUndo((state) => state.audioVolume);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
+  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
+  const panShot = useStoreWithUndo((state) => state.panShot);
+  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
+  const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const [zoomTransform, setZoomTransform] = useState(1);
+  const [zoomTranslateX, setZoomTranslateX] = useState(0);
+  const [zoomTranslateY, setZoomTranslateY] = useState(0);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -122,6 +137,41 @@ const Editor = ({ onReady }, ref) => {
     if (showVideo === true && onReady) onReady();
   }, [showVideo, onReady]);
 
+  useEffect(() => {
+    if (!zoomPan) {
+      setZoomTransform(1);
+      setZoomTranslateY(0);
+      setZoomTranslateX(0);
+    }
+  }, [zoomPan]);
+
+  useEffect(() => {
+    if (zoomPan) {
+      setZoomTransform((zoom / 100 / duration) * time + 1);
+      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
+        setZoomTranslateX((width / 2 / duration) * time);
+      } else if (
+        zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT ||
+        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
+      ) {
+        setZoomTranslateX((-width / 2 / duration) * time);
+      } else {
+        setZoomTranslateX(0);
+      }
+
+      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
+        setZoomTranslateY((height / 2 / duration) * time);
+      } else if (
+        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT ||
+        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
+      ) {
+        setZoomTranslateY((-height / 2 / duration) * time);
+      } else {
+        setZoomTranslateY(0);
+      }
+    }
+  }, [time]);
+
   const [width, height] = useMemo(() => {
     if (!maxWidth || !maxHeight || !canvasFormat) return [0, 0];
     // try to use full width first
@@ -178,9 +228,9 @@ const Editor = ({ onReady }, ref) => {
                     height: '100%',
                     objectFit: videoFit,
                     objectPosition: objectPosition,
-                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg) scale(${
-                      zoom / 100 + 1
-                    })`,
+                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${
+                      flipVertical ? 180 : 0
+                    }deg) scale(${zoomTransform}) translate(${zoomTranslateX}px, ${zoomTranslateY}px)`,
                     filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${
                       saturation / 100
                     }) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) blur(${blur}px)`,
