@@ -4,24 +4,28 @@ export const CANVAS_FORMATS = {
     title: '16/9',
     x: 16,
     y: 9,
+    reverse: '9/16',
   },
   _1_BY_1: {
     id: 1,
     title: '1/1',
     x: 1,
     y: 1,
+    reverse: '1/1',
   },
   _4_BY_3: {
     id: 2,
     title: '4/3',
     x: 4,
     y: 3,
+    reverse: '3/4',
   },
   _9_BY_16: {
     id: 3,
     title: '9/16',
     x: 9,
     y: 16,
+    reverse: '16/9',
   },
 };
 
@@ -134,41 +138,41 @@ export const getXPos = (videoAlign, videoFit) => {
   }
 };
 
-export const getPanStartY = (panDirection) => {
+export const getPanStartY = (panDirection, duration) => {
   if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
-    return 'if(on,y-1,ih-ih/pzoom)';
+    return `ih-oh - ((ih-oh)/${duration})*t`;
   } else if (
     panDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
     panDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
     panDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
     panDirection === PAN_DIRECTION._RIGHT_TO_LEFT
   ) {
-    return 'ih/2-(ih/pzoom/2)';
+    return 'ih/2 - oh/2';
   } else if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
-    return 'if(on,y+1,ih-ih/pzoom)';
+    return `0 + ((ih-oh)/${duration})*t`;
   } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
-    return 'if(on,y-1,ih/2/pzoom)';
+    return `ih-oh - ((ih/2 - oh/2)/${duration})*t`;
   } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
-    return 'if(on,y+1,ih/2/pzoom)';
+    return `0 + ((ih/2 - oh/2)/${duration})*t`;
   }
 };
 
-export const getPanStartX = (panDirection) => {
+export const getPanStartX = (panDirection, duration) => {
   if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
-    return 'if(on,px-1,iw-iw/pzoom)';
+    return `0 + ((iw-ow)/${duration})*t`;
   } else if (
     panDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
     panDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
     panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
     panDirection === PAN_DIRECTION._TOP_TO_CENTER
   ) {
-    return 'iw/2-(iw/pzoom/2)';
+    return 'iw/2 - ow/2';
   } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
-    return 'if(on,x+1,iw-iw/pzoom)';
+    return `iw-ow - ((iw-ow)/${duration})*t`;
   } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
-    return 'if(on,x-1,iw/2/pzoom)';
+    return `0 + ((iw/2 - ow/2)/${duration})*t`;
   } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
-    return 'if(on,x+1,iw/2/pzoom)';
+    return `iw-ow - ((iw/2 - ow/2)/${duration})*t`;
   }
 };
 
