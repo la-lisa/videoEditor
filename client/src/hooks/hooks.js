@@ -7,10 +7,10 @@ import {
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_DOWNLOAD_BUTTON_TITLE,
   VIDEO_FIT,
-  VIDEO_ALIGN,
-  DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
-  PAN_DIRECTION,
-  ZOOMPAN_OPTIONS,
+  getZoomPanX,
+  getZoomPanY,
+  getPanStartX,
+  getPanStartY,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -121,7 +121,11 @@ export function useRenderVideo() {
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
   const panShot = useStoreWithUndo((state) => state.panShot);
+  const zoom = useStoreWithUndo((state) => state.zoom);
   const outputFormat = useStoreWithUndo((state) => state.outputFormat);
+  const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
+  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
 
   const handleVideoProgressDialogCancel = () => {
     axios
@@ -266,36 +270,38 @@ export function useRenderVideo() {
     const zoomPanOptions =
       zoomPan && zoom > 0
         ? [
-          {
-            filter: 'scale',
-            options: '19200x10800',
-          },
-          {
-            filter: 'zoompan',
-            options: {
-              zoom: `min(pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}, ${zoom / 100 + 1})`,
-              x: getZoomPanX(),
-              y: getZoomPanY(),
-              d: 1,
-              fps: 30,
-              s: '1920x1080',
+            {
+              filter: 'scale',
+              options: '19200x10800',
             },
-          },
-        ]
+            {
+              filter: 'zoompan',
+              options: {
+                zoom: `min(pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}, ${
+                  zoom / 100 + 1
+                })`,
+                x: getZoomPanX(zoomPanDirection),
+                y: getZoomPanY(zoomPanDirection),
+                d: 1,
+                fps: 30,
+                s: '1920x1080',
+              },
+            },
+          ]
         : { filter: 'setsar', options: '1' };
 
     const panOptions = panShot
       ? {
-        filter: 'zoompan',
-        options: {
-          zoom: zoom ? `pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}` : 1,
-          x: getPanStartX(),
-          y: getPanStartY(),
-          d: 1,
-          fps: 30,
-          s: '1920x1080',
-        },
-      }
+          filter: 'zoompan',
+          options: {
+            zoom: zoom ? `pzoom + ${zoom / 1000 / (startTime && endTime ? endTime - startTime : duration)}` : 1,
+            x: getPanStartX(panDirection),
+            y: getPanStartY(panDirection),
+            d: 1,
+            fps: 30,
+            s: '1920x1080',
+          },
+        }
       : { filter: 'setsar', options: '1' };
 
     axios
@@ -305,6 +311,7 @@ export function useRenderVideo() {
         vfOptions,
         afOptions: audioOptions,
         adjustOptions: adjustmentOptions,
+        panOptions,
         zoomPanOptions,
         outputFormat,
       })

@@ -19,6 +19,7 @@ const processVideo = (req, res, filename, ext, params) => {
     trimTime,
     duration,
     adjustOptions,
+    panOptions,
     zoomPanOptions,
     outputFormat,
   } = params;

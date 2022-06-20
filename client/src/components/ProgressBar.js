@@ -161,8 +161,8 @@ const ProgressBar = ({ videoReady }, ref) => {
                 </svg>
                 <Playhead xPos={playheadPosition} />
                 <SelectionTimestamps
-                  startTimeLocation={brushScaleX(startTime)}
-                  endTimeLocation={brushScaleX(endTime)}
+                  startTimeLocation={startTime ? brushScaleX(startTime) : null}
+                  endTimeLocation={endTime ? brushScaleX(endTime) : null}
                 />
               </g>
             </svg>
@@ -224,6 +224,6 @@ function SelectionTimestamps({ startTimeLocation, endTimeLocation }) {
 }
 
 SelectionTimestamps.propTypes = {
-  startTimeLocation: PropTypes.number.isRequired,
-  endTimeLocation: PropTypes.number.isRequired,
+  startTimeLocation: PropTypes.number,
+  endTimeLocation: PropTypes.number,
 };

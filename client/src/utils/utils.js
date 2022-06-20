@@ -133,3 +133,63 @@ export const getXPos = (videoAlign, videoFit) => {
     return '0';
   }
 };
+
+export const getPanStartY = (panDirection) => {
+  if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
+    return 'if(on,y-1,ih-ih/pzoom)';
+  } else if (
+    panDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
+    panDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
+    panDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
+    panDirection === PAN_DIRECTION._RIGHT_TO_LEFT
+  ) {
+    return 'ih/2-(ih/pzoom/2)';
+  } else if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
+    return 'if(on,y+1,ih-ih/pzoom)';
+  } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
+    return 'if(on,y-1,ih/2/pzoom)';
+  } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
+    return 'if(on,y+1,ih/2/pzoom)';
+  }
+};
+
+export const getPanStartX = (panDirection) => {
+  if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
+    return 'if(on,px-1,iw-iw/pzoom)';
+  } else if (
+    panDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
+    panDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
+    panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
+    panDirection === PAN_DIRECTION._TOP_TO_CENTER
+  ) {
+    return 'iw/2-(iw/pzoom/2)';
+  } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
+    return 'if(on,x+1,iw-iw/pzoom)';
+  } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
+    return 'if(on,x-1,iw/2/pzoom)';
+  } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
+    return 'if(on,x+1,iw/2/pzoom)';
+  }
+};
+
+export const getZoomPanY = (zoomPanDirection) => {
+  if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
+    return 'ih/2-(ih/pzoom/2)';
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT) {
+    return 0;
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
+    return 'y';
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
+    return 7200;
+  }
+};
+
+export const getZoomPanX = (zoomPanDirection) => {
+  if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
+    return 'iw/2-(iw/pzoom/2)';
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
+    return 0;
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
+    return 'iw/2+iw/zoom/2';
+  }
+};

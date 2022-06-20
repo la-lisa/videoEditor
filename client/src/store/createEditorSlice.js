@@ -11,9 +11,9 @@ export const createEditorSlice = (set, get) => ({
   setCanvasFormatChosen: (chosen) => set({ canvasFormatChosen: chosen }),
   duration: 0,
   setDuration: (duration) => set({ duration: duration }),
-  startTime: 0,
+  startTime: null,
   setStartTime: (startTime) => set({ startTime: startTime }),
-  endTime: 0,
+  endTime: null,
   setEndTime: (endTime) => set({ endTime: endTime }),
 });
 
