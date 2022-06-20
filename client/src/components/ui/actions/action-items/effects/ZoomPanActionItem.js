@@ -19,11 +19,11 @@ function PanShotHandles() {
   const zoom = useStoreWithUndo((state) => state.zoom);
   const setZoom = useStoreWithUndo((state) => state.setZoom);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
+  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
   const setZoomPanDirection = useStoreWithUndo((state) => state.setZoomPanDirection);
-  const panDirection = useStoreWithUndo((state) => state.panDirection);
   const setPanShot = useStoreWithUndo((state) => state.setPanShot);
 
-  const handleEnablePanShot = () => {
+  const handleEnableZoomPan = () => {
     if (zoomPan) {
       setZoom(0);
     }
@@ -37,7 +37,7 @@ function PanShotHandles() {
     <>
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
         <Typography gutterBottom>ZoomPan</Typography>
-        <Switch onChange={handleEnablePanShot} checked={zoomPan} color="primary" />
+        <Switch onChange={handleEnableZoomPan} checked={zoomPan} color="primary" />
         <Typography gutterBottom>Zoom</Typography>
         <Slider
           aria-label="Zoom %"
@@ -50,16 +50,16 @@ function PanShotHandles() {
           disabled={!zoomPan}
         />
         <Typography gutterBottom>Zoompan Direction</Typography>
-        {Object.values(ZOOMPAN_OPTIONS).map((direction) => {
+        {Object.values(ZOOMPAN_OPTIONS).map((option) => {
           return (
             <MenuItem
               disabled={!zoomPan}
-              key={direction}
-              onClick={() => setZoomPanDirection(direction)}
-              selected={panDirection === direction}
+              key={option}
+              onClick={() => setZoomPanDirection(option)}
+              selected={zoomPanDirection === option}
             >
               <Stack direction="row" spacing={1}>
-                <ListItemText>{capitalize(direction)}</ListItemText>
+                <ListItemText>{capitalize(option)}</ListItemText>
               </Stack>
             </MenuItem>
           );

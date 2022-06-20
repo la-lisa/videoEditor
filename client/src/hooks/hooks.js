@@ -9,6 +9,7 @@ import {
   VIDEO_ALIGN,
   DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
   PAN_DIRECTION,
+  ZOOMPAN_OPTIONS,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -217,40 +218,27 @@ export function useWriteFile() {
   };
 
   const getZoomPanY = () => {
-    if (zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
-      return 'if(on,y-1,ih-ih/pzoom)';
-    } else if (
-      zoomPanDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
-      zoomPanDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
-      zoomPanDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
-      zoomPanDirection === PAN_DIRECTION._RIGHT_TO_LEFT
-    ) {
+    if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
       return 'ih/2-(ih/pzoom/2)';
-    } else if (zoomPanDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
-      return 'if(on,y+1,ih-ih/pzoom)';
-    } else if (zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
-      return 'if(on,y-1,ih/2/pzoom)';
-    } else if (zoomPanDirection === PAN_DIRECTION._TOP_TO_CENTER) {
-      return 'if(on,y+1,ih/2/pzoom)';
+    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT) {
+      return 0;
+    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
+      return 'y';
+    } else if (
+      zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT ||
+      zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
+    ) {
+      return 7200;
     }
   };
 
   const getZoomPanX = () => {
-    if (zoomPanDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
-      return 'if(on,px-1,iw-iw/pzoom)';
-    } else if (
-      zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
-      zoomPanDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
-      zoomPanDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
-      zoomPanDirection === PAN_DIRECTION._TOP_TO_CENTER
-    ) {
+    if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
       return 'iw/2-(iw/pzoom/2)';
-    } else if (zoomPanDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
-      return 'if(on,x+1,iw-iw/pzoom)';
-    } else if (zoomPanDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
-      return 'if(on,x-1,iw/2/pzoom)';
-    } else if (zoomPanDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
-      return 'if(on,x+1,iw/2/pzoom)';
+    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
+      return 0;
+    } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
+      return 'iw/2+iw/zoom/2';
     }
   };
 
@@ -360,19 +348,26 @@ export function useWriteFile() {
       ? { filter: 'volume', options: '0.0' }
       : { filter: 'volume', options: `${audioVolume / 100}` };
 
-    const zoomPanOptions = zoomPan
-      ? {
-          filter: 'zoompan',
-          options: {
-            zoom: zoom ? `pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}` : 1,
-            x: getZoomPanX(),
-            y: getZoomPanY(),
-            d: 1,
-            fps: 30,
-            s: '1920x1080',
-          },
-        }
-      : { filter: 'setsar', options: '1' };
+    const zoomPanOptions =
+      zoomPan && zoom > 0
+        ? [
+            {
+              filter: 'scale',
+              options: '19200x10800',
+            },
+            {
+              filter: 'zoompan',
+              options: {
+                zoom: `min(pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}, ${zoom / 100 + 1})`,
+                x: getZoomPanX(),
+                y: getZoomPanY(),
+                d: 1,
+                fps: 30,
+                s: '1920x1080',
+              },
+            },
+          ]
+        : { filter: 'setsar', options: '1' };
 
     const panOptions = panShot
       ? {
