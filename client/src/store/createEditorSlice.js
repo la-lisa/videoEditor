@@ -79,7 +79,9 @@ const createEditorSlice = undoMiddleware(
       'zoom',
       'videoAlign',
       'panShot',
+      'zoomPan',
       'panDirection',
+      'zoomPanDirection',
       'outputFormat',
     ],
   }

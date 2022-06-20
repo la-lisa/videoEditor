@@ -358,7 +358,7 @@ export function useWriteFile() {
             {
               filter: 'zoompan',
               options: {
-                zoom: `min(pzoom + ${zoom / 1000 / (secondsEnd - secondsStart)}, ${zoom / 100 + 1})`,
+                zoom: `min(pzoom + ${(zoom / 1000 + 1) / (secondsEnd - secondsStart)}, ${zoom / 100 + 1})`,
                 x: getZoomPanX(),
                 y: getZoomPanY(),
                 d: 1,
