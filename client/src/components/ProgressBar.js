@@ -37,6 +37,39 @@ const ProgressBar = ({ videoReady }, ref) => {
     isPlaying ? ref?.current?.play() : ref?.current?.pause();
   }, [isPlaying, ref]);
 
+  const svgRef = useRef(null);
+  const [maxWidth, setMaxWidth] = useState(100);
+
+  // SCALES
+  // Functions that help us map our data values to their corresponding physical pixel representation
+  const brushScaleX = useMemo(
+    () =>
+      scaleLinear({
+        domain: [0, duration], // data values (time)
+        range: [0, maxWidth], // corresponding pixel values
+        // nice: true, // use rounded values for start and end points
+      }),
+    [duration, maxWidth]
+  );
+  const brushScaleY = scaleLinear();
+
+  const onProgressBarResizeHandler = useCallback(
+    (contentRect) => {
+      setMaxWidth(contentRect.width);
+    },
+    [setMaxWidth]
+  );
+  const dimensionsRef = useDimensionChange(onProgressBarResizeHandler);
+
+  // update the brush selection on resize if there currently is a selection
+  useEffect(() => {
+    if (!startTime && !endTime) return;
+    setBrushPosition({
+      start: { x: brushScaleX(startTime) },
+      end: { x: brushScaleX(endTime) },
+    });
+  }, [brushScaleX]);
+
   const handleSeek = (e) => {
     const mappedTimeValue = brushScaleX.invert(e.pageX - svgRef.current.getBoundingClientRect().left);
     if (ref.current) {
@@ -47,50 +80,19 @@ const ProgressBar = ({ videoReady }, ref) => {
     }
   };
 
-  const handleChange = useDebouncedCallback((bounds) => {
-    if (!bounds) return;
-    if (ref.current) {
-      const domainMin = brushScaleX.domain()[0];
-      const domainMax = brushScaleX.domain()[1];
-      ref.current.currentTime = clamp(bounds.x0, domainMin, domainMax);
-      setStartTime(Math.max(bounds.x0, 0));
-      setEndTime(Math.min(bounds.x1, domainMax));
-    }
-  });
-
-  const svgRef = useRef(null);
-  const [maxWidth, setMaxWidth] = useState(0);
-  const xBrushMax = useMemo(() => maxWidth || 100, [maxWidth]);
-
-  const onProgressBarResizeHandler = useCallback(
-    (contentRect) => {
-      setMaxWidth(contentRect.width);
+  const handleChange = useDebouncedCallback(
+    (bounds) => {
+      if (!bounds) return;
+      if (ref.current) {
+        const domainMin = brushScaleX.domain()[0];
+        const domainMax = brushScaleX.domain()[1];
+        ref.current.currentTime = clamp(bounds.x0, domainMin, domainMax);
+        setStartTime(Math.max(bounds.x0, 0));
+        setEndTime(Math.min(bounds.x1, domainMax));
+      }
     },
-    [setMaxWidth]
+    [ref, brushScaleX.domain()]
   );
-  const dimensionsRef = useDimensionChange(onProgressBarResizeHandler);
-
-  // SCALES
-  // Functions that help us map our data values to their corresponding physical pixel representation
-  const brushScaleX = useMemo(
-    () =>
-      scaleLinear({
-        domain: [0, duration], // data values (time)
-        range: [0, xBrushMax], // corresponding pixel values
-        // nice: true, // use rounded values for start and end points
-      }),
-    [duration, xBrushMax]
-  );
-  const brushScaleY = scaleLinear();
-
-  // update the brush selection on resize if there currently is a selection
-  useEffect(() => {
-    if (!startTime && !endTime) return;
-    setBrushPosition({
-      start: { x: brushScaleX(startTime) },
-      end: { x: brushScaleX(endTime) },
-    });
-  }, [brushScaleX]);
 
   const playheadPosition = brushScaleX(time);
 
@@ -122,7 +124,7 @@ const ProgressBar = ({ videoReady }, ref) => {
                 <Brush
                   xScale={brushScaleX}
                   yScale={brushScaleY}
-                  width={xBrushMax}
+                  width={maxWidth}
                   height={50}
                   key={brushPosition ? `${brushPosition.start.x},${brushPosition.end.x}` : ''}
                   initialBrushPosition={brushPosition}
