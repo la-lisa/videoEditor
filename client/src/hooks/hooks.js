@@ -240,8 +240,8 @@ export function useRenderVideo() {
         ? {
             filter: 'crop',
             options: {
-              w: `if(gte(iw, ow),ih*${CANVAS_FORMATS[canvasFormat].title},iw)`,
-              h: `if(gte(iw, ow),ih,iw*${CANVAS_FORMATS[canvasFormat].reverse})`,
+              w: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih*${CANVAS_FORMATS[canvasFormat].title},iw)`,
+              h: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih,iw*${CANVAS_FORMATS[canvasFormat].reverse})`,
               x: getXPos(videoAlign, videoFit),
               y: getYPos(videoAlign, videoFit),
             },
@@ -295,8 +295,8 @@ export function useRenderVideo() {
       ? {
           filter: 'crop',
           options: {
-            w: `if(gte(iw, ow), (ih*${CANVAS_FORMATS[canvasFormat].title}), iw)`,
-            h: `if(gte(iw, ow), ih, (iw*${CANVAS_FORMATS[canvasFormat].reverse}))`,
+            w: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih*${CANVAS_FORMATS[canvasFormat].title},iw)`,
+            h: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih,iw*${CANVAS_FORMATS[canvasFormat].reverse})`,
             x: getPanStartX(panDirection, startTime && endTime ? endTime - startTime : duration),
             y: getPanStartY(panDirection, startTime && endTime ? endTime - startTime : duration),
           },
