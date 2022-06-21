@@ -8,6 +8,7 @@ import {
   CANVAS_FORMATS,
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_OK_BUTTON_TITLE,
+  PAN_DIRECTION,
   VIDEO_ALIGN,
   ZOOMPAN_OPTIONS,
 } from '../utils/utils';
@@ -49,6 +50,8 @@ const Editor = ({ onReady }, ref) => {
   const [zoomTransform, setZoomTransform] = useState(1);
   const [zoomTranslateX, setZoomTranslateX] = useState(0);
   const [zoomTranslateY, setZoomTranslateY] = useState(0);
+  const [panTranslateX, setPanTranslateX] = useState(0);
+  const [panTranslateY, setPanTranslateY] = useState(0);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
@@ -155,6 +158,13 @@ const Editor = ({ onReady }, ref) => {
   }, [zoomPan]);
 
   useEffect(() => {
+    if (!panShot) {
+      setPanTranslateY(0);
+      setPanTranslateX(0);
+    }
+  }, [zoomPan]);
+
+  useEffect(() => {
     if (zoomPan) {
       setZoomTransform((zoom / 100 / duration) * time + 1);
       if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
@@ -175,6 +185,31 @@ const Editor = ({ onReady }, ref) => {
         zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
       ) {
         setZoomTranslateY((-height / 2 / duration) * time);
+      } else {
+        setZoomTranslateY(0);
+      }
+    }
+    if (panShot) {
+      if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
+        setPanTranslateX((-width / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
+        setPanTranslateX((-(width / 2) / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
+        setPanTranslateX((width / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
+        setPanTranslateX((width / 2 / duration) * time);
+      } else {
+        setPanTranslateX(0);
+      }
+
+      if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
+        setPanTranslateY((-height / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
+        setPanTranslateY((-(height / 2) / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
+        setPanTranslateY((height / duration) * time);
+      } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
+        setPanTranslateY((height / 2 / duration) * time);
       } else {
         setZoomTranslateY(0);
       }
@@ -239,7 +274,9 @@ const Editor = ({ onReady }, ref) => {
                     objectPosition: objectPosition,
                     transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${
                       flipVertical ? 180 : 0
-                    }deg) scale(${zoomTransform}) translate(${zoomTranslateX}px, ${zoomTranslateY}px)`,
+                    }deg) scale(${zoomTransform}) translate(${panShot ? panTranslateX : zoomTranslateX}px, ${
+                      panShot ? panTranslateY : zoomTranslateY
+                    }px)`,
                     filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${
                       saturation / 100
                     }) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) blur(${blur}px)`,
