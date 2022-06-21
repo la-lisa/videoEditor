@@ -277,10 +277,9 @@ export function useRenderVideo() {
             {
               filter: 'zoompan',
               options: {
-                zoom: `min(pzoom + ${
-                  ((zoom / 3000) * (startTime && endTime ? endTime - startTime : duration)) /
-                  (startTime && endTime ? endTime - startTime : duration)
-                }, ${zoom / 100 + 1})`,
+                zoom: `min(pzoom + ${zoom / (3000 * (startTime && endTime ? endTime - startTime : duration))}, ${
+                  zoom / 100 + 1
+                })`,
                 x: getZoomPanX(zoomPanDirection),
                 y: getZoomPanY(zoomPanDirection),
                 d: 1,
