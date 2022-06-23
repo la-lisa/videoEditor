@@ -2,16 +2,9 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Grid, Stack, useTheme } from '@mui/material';
 import DropzoneContainer from './DropzoneContainer';
 import CanvasFormatDialog from './ui/dialogs/CanvasFormatDialog';
-import { useDimensionChange, useEventListener, useUploadVideo } from '../hooks/hooks';
+import { useAnimationFrame, useDimensionChange, useEventListener, useUploadVideo } from '../hooks/hooks';
 import useStore from '../store/useStore';
-import {
-  CANVAS_FORMATS,
-  DIALOG_CANCEL_BUTTON_TITLE,
-  DIALOG_OK_BUTTON_TITLE,
-  PAN_DIRECTION,
-  VIDEO_ALIGN,
-  ZOOMPAN_OPTIONS,
-} from '../utils/utils';
+import { CANVAS_FORMATS, clamp, DIALOG_CANCEL_BUTTON_TITLE, DIALOG_OK_BUTTON_TITLE, VIDEO_ALIGN } from '../utils/utils';
 import { useThrottledCallback, useWindowResize } from 'beautiful-react-hooks';
 import useStoreWithUndo from '../store/useStoreWithUndo';
 
@@ -26,6 +19,7 @@ const Editor = ({ onReady }, ref) => {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const videoBgColor = useStoreWithUndo((state) => state.videoBgColor);
   const setDuration = useStore((state) => state.setDuration);
+  const isPlaying = useStore((state) => state.isPlaying);
   const toggleIsPlaying = useStore((state) => state.toggleIsPlaying);
   const setTime = useStore((state) => state.setTime);
   const brightness = useStoreWithUndo((state) => state.brightness);
@@ -36,26 +30,55 @@ const Editor = ({ onReady }, ref) => {
   const invert = useStoreWithUndo((state) => state.invert);
   const flipHorizontal = useStoreWithUndo((state) => state.flipHorizontal);
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
-  const zoom = useStoreWithUndo((state) => state.zoom);
-  const time = useStore((state) => state.time);
   const duration = useStore((state) => state.duration);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
   const audioVolume = useStoreWithUndo((state) => state.audioVolume);
   const muteAudio = useStoreWithUndo((state) => state.muteAudio);
-  const zoomPan = useStoreWithUndo((state) => state.zoomPan);
   const panShot = useStoreWithUndo((state) => state.panShot);
-  const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
-  const panDirection = useStoreWithUndo((state) => state.panDirection);
+  const videoWidth = useStore((state) => state.videoWidth);
+  const setVideoWidth = useStore((state) => state.setVideoWidth);
+  const videoHeight = useStore((state) => state.videoHeight);
+  const setVideoHeight = useStore((state) => state.setVideoHeight);
   const filename = useStore((state) => state.filename);
-  const [zoomTransform, setZoomTransform] = useState(1);
-  const [zoomTranslateX, setZoomTranslateX] = useState(0);
-  const [zoomTranslateY, setZoomTranslateY] = useState(0);
-  const [panTranslateX, setPanTranslateX] = useState(0);
-  const [panTranslateY, setPanTranslateY] = useState(0);
 
   useEventListener('keydown', handleKeydown);
   useEventListener('beforeunload', handleBeforeUnload);
   useEventListener('unload', handleUnload);
+  useEventListener('userSeek', handleUserSeek, ref.current);
+  useEventListener('play', handlePlay, ref.current);
+
+  const handleMetadata = (e) => {
+    setDuration(e.target.duration);
+    setVideoWidth(e.target.videoWidth);
+    setVideoHeight(e.target.videoHeight);
+  };
+
+  function handleKeydown(e) {
+    if (e.keyCode === 32) {
+      // space
+      toggleIsPlaying();
+    }
+  }
+
+  function handleBeforeUnload(e) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+
+  function handleUnload() {
+    const ua = JSON.stringify({ filename: filename });
+    const headers = { type: 'application/json' };
+    const blob = new Blob([ua], headers);
+    navigator.sendBeacon('/api/deleteUploadsThumbs', blob);
+  }
+
+  function handleUserSeek(_) {
+    setCurrentObjectPosition();
+  }
+
+  function handlePlay() {
+    setCurrentObjectPosition();
+  }
 
   const theme = useTheme();
 
@@ -114,32 +137,7 @@ const Editor = ({ onReady }, ref) => {
     }
   }, [video]);
 
-  const syncStateToTime = useCallback(() => {
-    setTime(ref.current?.currentTime);
-  }, [ref, setTime]);
-
-  const handleMetadata = (e) => {
-    setDuration(e.target.duration);
-  };
-
-  function handleKeydown(e) {
-    if (e.keyCode === 32) {
-      // space
-      toggleIsPlaying();
-    }
-  }
-
-  function handleBeforeUnload(e) {
-    e.preventDefault();
-    e.returnValue = '';
-  }
-
-  function handleUnload() {
-    const ua = JSON.stringify({ filename: filename });
-    const headers = { type: 'application/json' };
-    const blob = new Blob([ua], headers);
-    navigator.sendBeacon('/api/deleteUploadsThumbs', blob);
-  }
+  const syncStateToTime = () => setTime(ref.current?.currentTime);
 
   const showVideo = useMemo(() => {
     return video && videoUrl && canvasFormat && canvasFormatChosen;
@@ -149,72 +147,46 @@ const Editor = ({ onReady }, ref) => {
     if (showVideo === true && onReady) onReady();
   }, [showVideo, onReady]);
 
-  useEffect(() => {
-    if (!zoomPan) {
-      setZoomTransform(1);
-      setZoomTranslateY(0);
-      setZoomTranslateX(0);
+  const shouldAnimate = useMemo(() => isPlaying && panShot, [panShot, isPlaying]);
+  const videoAspectRatio = useMemo(() => Number(videoWidth) / Number(videoHeight), [videoWidth, videoHeight]);
+
+  const resetObjectPosition = () => {
+    if (ref?.current) ref.current.style.objectPosition = objectPosition;
+  };
+
+  const setCurrentObjectPosition = () => {
+    if (ref?.current && panShot) {
+      const realVideoWidth = height * videoAspectRatio;
+      const elapsedTimeFraction = (ref.current.currentTime || 0) / duration;
+      const currentOffset = elapsedTimeFraction * -(realVideoWidth - width);
+      ref.current.style.objectPosition = `left ${clamp(currentOffset, -(realVideoWidth - width), 0)}px top 50%`;
     }
-  }, [zoomPan]);
+  };
 
   useEffect(() => {
-    if (!panShot) {
-      setPanTranslateY(0);
-      setPanTranslateX(0);
-    }
-  }, [zoomPan]);
+    // reset the `objectPosition` property of the video element when the user disables the pan shot feature
+    if (!panShot) resetObjectPosition();
+    // ... or set it initially to the correct value after the user enables the feature
+    else setCurrentObjectPosition();
+  }, [panShot]);
 
-  useEffect(() => {
-    if (zoomPan) {
-      setZoomTransform((zoom / 100 / duration) * time + 1);
-      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
-        setZoomTranslateX((width / 2 / duration) * time);
-      } else if (
-        zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT ||
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
-      ) {
-        setZoomTranslateX((-width / 2 / duration) * time);
-      } else {
-        setZoomTranslateX(0);
-      }
+  const animationCallback = (deltaTime) => {
+    const startOffset = 0;
+    const currentValueString = ref.current.style.objectPosition;
+    const currentOffset =
+      Number(currentValueString.substring(currentValueString.indexOf(' '), currentValueString.indexOf('px'))) ||
+      startOffset;
+    const additionalPercentage = deltaTime / 1000 / duration;
+    const realVideoWidth = height * videoAspectRatio;
+    const additionalOffset = additionalPercentage * (realVideoWidth - width);
+    ref.current.style.objectPosition = `left ${clamp(
+      currentOffset - additionalOffset,
+      -(realVideoWidth - width),
+      startOffset
+    )}px top 50%`;
+  };
 
-      if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT) {
-        setZoomTranslateY((height / 2 / duration) * time);
-      } else if (
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT ||
-        zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT
-      ) {
-        setZoomTranslateY((-height / 2 / duration) * time);
-      } else {
-        setZoomTranslateY(0);
-      }
-    }
-    if (panShot) {
-      if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
-        setPanTranslateX((-width / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
-        setPanTranslateX((-(width / 2) / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
-        setPanTranslateX((width / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
-        setPanTranslateX((width / 2 / duration) * time);
-      } else {
-        setPanTranslateX(0);
-      }
-
-      if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
-        setPanTranslateY((-height / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
-        setPanTranslateY((-(height / 2) / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
-        setPanTranslateY((height / duration) * time);
-      } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
-        setPanTranslateY((height / 2 / duration) * time);
-      } else {
-        setZoomTranslateY(0);
-      }
-    }
-  }, [time]);
+  useAnimationFrame(animationCallback, shouldAnimate);
 
   const [width, height] = useMemo(() => {
     if (!maxWidth || !maxHeight || !canvasFormat) return [0, 0];
@@ -272,11 +244,7 @@ const Editor = ({ onReady }, ref) => {
                     height: '100%',
                     objectFit: videoFit,
                     objectPosition: objectPosition,
-                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${
-                      flipVertical ? 180 : 0
-                    }deg) scale(${zoomTransform}) translate(${panShot ? panTranslateX : zoomTranslateX}px, ${
-                      panShot ? panTranslateY : zoomTranslateY
-                    }px)`,
+                    transform: `rotateY(${flipHorizontal ? 180 : 0}deg) rotateX(${flipVertical ? 180 : 0}deg)`,
                     filter: `brightness(${brightness / 100}) contrast(${contrast / 100}) saturate(${
                       saturation / 100
                     }) hue-rotate(${hue}deg) invert(${invert ? 100 : 0}%) blur(${blur}px)`,

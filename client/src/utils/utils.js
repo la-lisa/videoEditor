@@ -138,41 +138,13 @@ export const getXPos = (videoAlign, videoFit) => {
   }
 };
 
-export const getPanStartY = (panDirection, duration) => {
-  if (panDirection === PAN_DIRECTION._BOTTOM_TO_TOP) {
-    return `ih-oh - ((ih-oh)/${duration})*t`;
-  } else if (
-    panDirection === PAN_DIRECTION._LEFT_TO_CENTER ||
-    panDirection === PAN_DIRECTION._RIGHT_TO_CENTER ||
-    panDirection === PAN_DIRECTION._LEFT_TO_RIGHT ||
-    panDirection === PAN_DIRECTION._RIGHT_TO_LEFT
-  ) {
-    return 'ih/2 - oh/2';
-  } else if (panDirection === PAN_DIRECTION._TOP_TO_BOTTOM) {
-    return `0 + ((ih-oh)/${duration})*t`;
-  } else if (panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER) {
-    return `ih-oh - ((ih/2 - oh/2)/${duration})*t`;
-  } else if (panDirection === PAN_DIRECTION._TOP_TO_CENTER) {
-    return `0 + ((ih/2 - oh/2)/${duration})*t`;
-  }
-};
-
-export const getPanStartX = (panDirection, duration) => {
-  if (panDirection === PAN_DIRECTION._LEFT_TO_RIGHT) {
-    return `0 + ((iw-ow)/${duration})*t`;
-  } else if (
-    panDirection === PAN_DIRECTION._BOTTOM_TO_TOP ||
-    panDirection === PAN_DIRECTION._TOP_TO_BOTTOM ||
-    panDirection === PAN_DIRECTION._BOTTOM_TO_CENTER ||
-    panDirection === PAN_DIRECTION._TOP_TO_CENTER
-  ) {
-    return 'iw/2 - ow/2';
-  } else if (panDirection === PAN_DIRECTION._RIGHT_TO_LEFT) {
-    return `iw-ow - ((iw-ow)/${duration})*t`;
-  } else if (panDirection === PAN_DIRECTION._LEFT_TO_CENTER) {
-    return `0 + ((iw/2 - ow/2)/${duration})*t`;
-  } else if (panDirection === PAN_DIRECTION._RIGHT_TO_CENTER) {
-    return `iw-ow - ((iw/2 - ow/2)/${duration})*t`;
+export const getZoomPanX = (zoomPanDirection) => {
+  if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
+    return 'iw/2-(iw/pzoom/2)';
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
+    return 0;
+  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
+    return 'iw/2+iw/zoom/2';
   }
 };
 
@@ -188,12 +160,4 @@ export const getZoomPanY = (zoomPanDirection) => {
   }
 };
 
-export const getZoomPanX = (zoomPanDirection) => {
-  if (zoomPanDirection === ZOOMPAN_OPTIONS._CENTER) {
-    return 'iw/2-(iw/pzoom/2)';
-  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_LEFT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_LEFT) {
-    return 0;
-  } else if (zoomPanDirection === ZOOMPAN_OPTIONS._TOP_RIGHT || zoomPanDirection === ZOOMPAN_OPTIONS._BOTTOM_RIGHT) {
-    return 'iw/2+iw/zoom/2';
-  }
-};
+export const userSeekEvent = new CustomEvent('userSeek', { detail: { timestamp: () => this.currentTime } });

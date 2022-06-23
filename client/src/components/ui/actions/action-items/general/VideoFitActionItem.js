@@ -10,8 +10,6 @@ import { ReactComponent as VideoFitCover } from '../../../../../assets/video-fit
 export default function VideoFitActionItem() {
   const videoFit = useStoreWithUndo((state) => state.videoFit);
   const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
-  const setPanShot = useStoreWithUndo((state) => state.setPanShot);
-  const setZoom = useStoreWithUndo((state) => state.setZoom);
 
   const iconComponentForVideoFit = (videoFit) => {
     return videoFit === VIDEO_FIT._COVER ? VideoFitCover : VideoFitContain;
@@ -19,10 +17,6 @@ export default function VideoFitActionItem() {
 
   const handleChangeVideoFit = (fit) => {
     setVideoFit(fit);
-    if (fit === VIDEO_FIT._CONTAIN) {
-      setPanShot(false);
-      setZoom(0);
-    }
   };
 
   return (
@@ -42,3 +36,5 @@ export default function VideoFitActionItem() {
     </ActionItem>
   );
 }
+
+export const userSeekEvent = new CustomEvent('userSeek', { detail: { timestamp: () => this.currentTime } });

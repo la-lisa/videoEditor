@@ -22,7 +22,16 @@ export const createUndoEditorSlice = undoMiddleware(
     canvasFormat: null,
     setCanvasFormat: (format) => set({ canvasFormat: format }),
     videoFit: VIDEO_FIT._CONTAIN,
-    setVideoFit: (videoFit) => set({ videoFit: videoFit }),
+    // panShot/zoomPan only works with `videoFit` set to `VIDEO_FIT._COVER`
+    setVideoFit: (videoFit) =>
+      set({
+        videoFit: videoFit,
+        ...(get().panShot && videoFit === VIDEO_FIT._COVER
+          ? { panShot: false }
+          : get().zoomPan && videoFit === VIDEO_FIT._COVER
+          ? { zoomPan: false }
+          : {}),
+      }),
     videoBgColor: '#000000',
     setVideoBgColor: (videoBgColor) => set({ videoBgColor: videoBgColor }),
     muteAudio: false,
@@ -50,11 +59,18 @@ export const createUndoEditorSlice = undoMiddleware(
     videoAlign: VIDEO_ALIGN._CENTER,
     setVideoAlign: (align) => set({ videoAlign: align }),
     panShot: false,
-    setPanShot: (panShot) => set({ panShot: panShot }),
-    panDirection: PAN_DIRECTION._LEFT_TO_CENTER,
+    // alter `videoFit` when the panShot feature is en-/disabled and disable zoomPan on panShot enable
+    setPanShot: (panShot) =>
+      set({
+        panShot: panShot,
+        videoFit: panShot ? VIDEO_FIT._COVER : VIDEO_FIT._CONTAIN,
+        ...(get().zoomPan ? { zoomPan: false } : {}),
+      }),
+    panDirection: PAN_DIRECTION._LEFT_TO_RIGHT,
     setPanDirection: (panDirection) => set({ panDirection: panDirection }),
     zoomPan: false,
-    setZoomPan: (zoomPan) => set({ zoomPan: zoomPan }),
+    // disable panShot on zoomPan enable
+    setZoomPan: (zoomPan) => set({ zoomPan: zoomPan, ...(get().panShot ? { panShot: false } : {}) }),
     zoomPanDirection: ZOOMPAN_OPTIONS._CENTER,
     setZoomPanDirection: (zoomPanDirection) => set({ zoomPanDirection: zoomPanDirection }),
     outputFormat: OUTPUT_FORMAT._MP4,
@@ -81,8 +97,8 @@ export const createUndoEditorSlice = undoMiddleware(
       'zoom',
       'videoAlign',
       'panShot',
-      'zoomPan',
       'panDirection',
+      'zoomPan',
       'zoomPanDirection',
       'outputFormat',
     ],

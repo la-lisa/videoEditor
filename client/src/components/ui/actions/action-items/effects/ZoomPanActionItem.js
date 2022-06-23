@@ -3,41 +3,25 @@ import ActionItem from '../../ActionItem';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
 import { Box, capitalize, ListItemText, MenuItem, Slider, Stack, Switch, Typography } from '@mui/material';
-import { VIDEO_FIT, ZOOMPAN_OPTIONS } from '../../../../../utils/utils';
+import { ZOOMPAN_OPTIONS } from '../../../../../utils/utils';
 
 export default function ZoomPanActionItem() {
-  return (
-    <ActionItem Icon={() => <ControlCameraIcon />} title="ZoomPan">
-      <PanShotHandles />
-    </ActionItem>
-  );
-}
-
-function PanShotHandles() {
   const zoomPan = useStoreWithUndo((state) => state.zoomPan);
   const setZoomPan = useStoreWithUndo((state) => state.setZoomPan);
   const zoom = useStoreWithUndo((state) => state.zoom);
   const setZoom = useStoreWithUndo((state) => state.setZoom);
-  const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
   const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
   const setZoomPanDirection = useStoreWithUndo((state) => state.setZoomPanDirection);
-  const setPanShot = useStoreWithUndo((state) => state.setPanShot);
 
-  const handleEnableZoomPan = () => {
-    if (zoomPan) {
-      setZoom(0);
-    }
-    if (!zoomPan) {
-      setPanShot(false);
-    }
+  const toggleZoomPan = () => {
     setZoomPan(!zoomPan);
-    setVideoFit(VIDEO_FIT._COVER);
   };
+
   return (
-    <>
+    <ActionItem Icon={() => <ControlCameraIcon />} title="Zoom Pan">
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
         <Typography gutterBottom>ZoomPan</Typography>
-        <Switch onChange={handleEnableZoomPan} checked={zoomPan} color="primary" />
+        <Switch onChange={toggleZoomPan} checked={zoomPan} color="primary" />
         <Typography gutterBottom>Zoom</Typography>
         <Slider
           aria-label="Zoom %"
@@ -49,7 +33,7 @@ function PanShotHandles() {
           max={100}
           disabled={!zoomPan}
         />
-        <Typography gutterBottom>Zoompan Direction</Typography>
+        <Typography gutterBottom>Direction</Typography>
         {Object.values(ZOOMPAN_OPTIONS).map((option) => {
           return (
             <MenuItem
@@ -65,6 +49,6 @@ function PanShotHandles() {
           );
         })}
       </Box>
-    </>
+    </ActionItem>
   );
 }

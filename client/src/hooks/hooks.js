@@ -6,11 +6,9 @@ import {
   DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_DOWNLOAD_BUTTON_TITLE,
-  VIDEO_FIT,
   getZoomPanX,
   getZoomPanY,
-  getPanStartX,
-  getPanStartY,
+  VIDEO_FIT,
 } from '../utils/utils';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -72,6 +70,31 @@ export function useDimensionChange(handler) {
   return ref;
 }
 
+// https://css-tricks.com/using-requestanimationframe-with-react-hooks/
+export function useAnimationFrame(callback, shouldAnimate = false) {
+  const requestRef = useRef(null);
+  const previousTimeRef = useRef(null);
+
+  const animate = (time) => {
+    if (previousTimeRef.current !== undefined) {
+      const deltaTime = time - previousTimeRef.current;
+      callback(deltaTime);
+    }
+    previousTimeRef.current = time;
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    if (shouldAnimate) {
+      requestRef.current = requestAnimationFrame(animate);
+    } else {
+      cancelAnimationFrame(requestRef.current);
+      previousTimeRef.current = undefined;
+    }
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [shouldAnimate]);
+}
+
 export function useUploadVideo() {
   const video = useStore((state) => state.video);
   const setThumbUrls = useStore((state) => state.setThumbUrls);
@@ -123,7 +146,6 @@ export function useRenderVideo() {
   const panShot = useStoreWithUndo((state) => state.panShot);
   const zoom = useStoreWithUndo((state) => state.zoom);
   const outputFormat = useStoreWithUndo((state) => state.outputFormat);
-  const panDirection = useStoreWithUndo((state) => state.panDirection);
   const zoomPan = useStoreWithUndo((state) => state.zoomPan);
   const zoomPanDirection = useStoreWithUndo((state) => state.zoomPanDirection);
 
@@ -296,8 +318,8 @@ export function useRenderVideo() {
           options: {
             w: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih*${CANVAS_FORMATS[canvasFormat].title},iw)`,
             h: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih,iw*${CANVAS_FORMATS[canvasFormat].reverse})`,
-            x: getPanStartX(panDirection, startTime && endTime ? endTime - startTime : duration),
-            y: getPanStartY(panDirection, startTime && endTime ? endTime - startTime : duration),
+            x: `0 + ((iw-ow)/${duration})*t`,
+            y: 'ih/2 - oh/2',
           },
         }
       : { filter: 'setsar', options: '1' };

@@ -3,43 +3,28 @@ import ActionItem from '../../ActionItem';
 import CameraFrontIcon from '@mui/icons-material/CameraFront';
 import useStoreWithUndo from '../../../../../store/useStoreWithUndo';
 import { Box, capitalize, ListItemText, MenuItem, Stack, Switch, Typography } from '@mui/material';
-import { PAN_DIRECTION, VIDEO_FIT } from '../../../../../utils/utils';
+import { PAN_DIRECTION } from '../../../../../utils/utils';
 
 export default function PanActionItem() {
-  return (
-    <ActionItem Icon={() => <CameraFrontIcon />} title="PanShot">
-      <PanShotHandles />
-    </ActionItem>
-  );
-}
-
-function PanShotHandles() {
   const panShot = useStoreWithUndo((state) => state.panShot);
   const setPanShot = useStoreWithUndo((state) => state.setPanShot);
-  const setVideoFit = useStoreWithUndo((state) => state.setVideoFit);
-  const setPanDirection = useStoreWithUndo((state) => state.setPanDirection);
   const panDirection = useStoreWithUndo((state) => state.panDirection);
-  const setZoomPan = useStoreWithUndo((state) => state.setZoomPan);
-  const setZoom = useStoreWithUndo((state) => state.setZoom);
+  const setPanDirection = useStoreWithUndo((state) => state.setPanDirection);
 
-  const handleEnablePanShot = () => {
-    if (!panShot) {
-      setZoomPan(false);
-      setZoom(0);
-    }
+  const togglePanShot = () => {
     setPanShot(!panShot);
-    setVideoFit(VIDEO_FIT._COVER);
   };
+
   return (
-    <>
+    <ActionItem Icon={() => <CameraFrontIcon />} title="Pan Shot">
       <Box sx={{ width: 200, height: 'auto', padding: 3 }}>
-        <Typography gutterBottom>Pan</Typography>
-        <Switch onChange={handleEnablePanShot} checked={panShot} color="primary" />
-        <Typography gutterBottom>Panshot Direction</Typography>
+        <Typography gutterBottom>Virtual Pan Shot</Typography>
+        <Switch onChange={togglePanShot} checked={panShot} color="primary" />
+        <Typography gutterBottom>Direction</Typography>
         {Object.values(PAN_DIRECTION).map((direction) => {
           return (
             <MenuItem
-              disabled={!panShot}
+              disabled={!panShot || direction !== PAN_DIRECTION._LEFT_TO_RIGHT}
               key={direction}
               onClick={() => setPanDirection(direction)}
               selected={panDirection === direction}
@@ -51,6 +36,6 @@ function PanShotHandles() {
           );
         })}
       </Box>
-    </>
+    </ActionItem>
   );
 }

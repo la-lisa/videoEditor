@@ -1,13 +1,12 @@
 import { Box, Button, Container, Stack, Typography, useTheme } from '@mui/material';
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PauseCircle, PlayCircle } from '@mui/icons-material';
-import { useDimensionChange, useRenderVideo } from '../hooks/hooks';
+import { useDimensionChange, useEventListener, useRenderVideo } from '../hooks/hooks';
 import { Brush } from '@visx/brush';
 import { scaleLinear } from '@visx/scale';
 import useStore from '../store/useStore';
-import { clamp } from '../utils/utils';
+import { clamp, userSeekEvent } from '../utils/utils';
 import * as PropTypes from 'prop-types';
-import { useDebouncedCallback } from 'beautiful-react-hooks';
 
 const ProgressBar = ({ videoReady }, ref) => {
   const isPlaying = useStore((state) => state.isPlaying);
@@ -20,16 +19,17 @@ const ProgressBar = ({ videoReady }, ref) => {
   const setStartTime = useStore((state) => state.setStartTime);
   const setEndTime = useStore((state) => state.setEndTime);
   const renderVideo = useRenderVideo();
-  const theme = useTheme();
-
   const [brushPosition, setBrushPosition] = useState(undefined);
 
-  // register event listeners on mount
-  useEffect(() => {
-    ref?.current?.addEventListener('ended', () => setIsPlaying(false));
-    ref?.current?.addEventListener('play', () => setIsPlaying(true));
-    ref?.current?.addEventListener('pause', () => setIsPlaying(false));
-  }, []);
+  const theme = useTheme();
+
+  const handleEnded = useCallback(() => setIsPlaying(false), [setIsPlaying]);
+  const handlePlay = useCallback(() => setIsPlaying(true), [setIsPlaying]);
+  const handlePause = useCallback(() => setIsPlaying(false), [setIsPlaying]);
+
+  useEventListener('ended', handleEnded, ref.current);
+  useEventListener('play', handlePlay, ref.current);
+  useEventListener('pause', handlePause, ref.current);
 
   // sync React state to the video element's play state
   useEffect(() => {
@@ -77,21 +77,19 @@ const ProgressBar = ({ videoReady }, ref) => {
       setEndTime(null);
       setBrushPosition(undefined);
     }
+    ref.current.dispatchEvent(userSeekEvent);
   };
 
-  const handleChange = useDebouncedCallback(
-    (bounds) => {
-      if (!bounds) return;
-      if (ref.current) {
-        const domainMin = brushScaleX.domain()[0];
-        const domainMax = brushScaleX.domain()[1];
-        ref.current.currentTime = clamp(bounds.x0, domainMin, domainMax);
-        setStartTime(Math.max(bounds.x0, 0));
-        setEndTime(Math.min(bounds.x1, domainMax));
-      }
-    },
-    [ref, brushScaleX.domain()]
-  );
+  const handleChange = (bounds) => {
+    if (bounds && ref.current) {
+      const domainMin = brushScaleX.domain()[0];
+      const domainMax = brushScaleX.domain()[1];
+      ref.current.currentTime = clamp(bounds.x0, domainMin, domainMax);
+      setStartTime(Math.max(bounds.x0, 0));
+      setEndTime(Math.min(bounds.x1, domainMax));
+    }
+    ref.current.dispatchEvent(userSeekEvent);
+  };
 
   const playheadPosition = brushScaleX(time);
 
@@ -110,7 +108,7 @@ const ProgressBar = ({ videoReady }, ref) => {
             <PlayPauseIcon titleAccess="Play/Pause (Space)" fontSize="large" sx={{ cursor: 'pointer' }} />
           </Box>
           <Box>
-            <Typography variant="caption" whiteSpace="nowrap">
+            <Typography variant="caption" whiteSpace="nowrap" style={{ userSelect: 'none' }}>
               {formatTimestamp(time)} / {formatTimestamp(duration)}
             </Typography>
           </Box>
@@ -211,12 +209,19 @@ function SelectionTimestamps({ startTimeLocation, endTimeLocation }) {
   const startTime = useStore((state) => state.startTime);
   const endTime = useStore((state) => state.endTime);
 
+  const textProps = {
+    textAnchor: 'middle',
+    dominantBaseline: 'middle',
+    fill: '#fff',
+    style: { userSelect: 'none' },
+  };
+
   return (
     <g>
-      <text x={startTimeLocation} y={10} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+      <text x={startTimeLocation} y={10} {...textProps}>
         {startTime?.toFixed(2)}
       </text>
-      <text x={endTimeLocation} y={10} textAnchor="middle" dominantBaseline="middle" fill="#fff">
+      <text x={endTimeLocation} y={10} {...textProps}>
         {endTime?.toFixed(2)}
       </text>
     </g>
