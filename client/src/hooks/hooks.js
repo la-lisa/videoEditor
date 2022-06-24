@@ -6,6 +6,8 @@ import {
   DIALOG_BACK_TO_EDITOR_BUTTON_TITLE,
   DIALOG_CANCEL_BUTTON_TITLE,
   DIALOG_DOWNLOAD_BUTTON_TITLE,
+  getPanStartX,
+  getPanStartY,
   getZoomPanX,
   getZoomPanY,
   VIDEO_FIT,
@@ -144,6 +146,7 @@ export function useRenderVideo() {
   const flipVertical = useStoreWithUndo((state) => state.flipVertical);
   const videoAlign = useStoreWithUndo((state) => state.videoAlign);
   const panShot = useStoreWithUndo((state) => state.panShot);
+  const panDirection = useStoreWithUndo((state) => state.panDirection);
   const zoom = useStoreWithUndo((state) => state.zoom);
   const outputFormat = useStoreWithUndo((state) => state.outputFormat);
   const zoomPan = useStoreWithUndo((state) => state.zoomPan);
@@ -318,8 +321,8 @@ export function useRenderVideo() {
           options: {
             w: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih*${CANVAS_FORMATS[canvasFormat].title},iw)`,
             h: `if(gte(iw, ih*${CANVAS_FORMATS[canvasFormat].title}),ih,iw*${CANVAS_FORMATS[canvasFormat].reverse})`,
-            x: `0 + ((iw-ow)/${duration})*t`,
-            y: 'ih/2 - oh/2',
+            x: getPanStartX(panDirection, startTime && endTime ? endTime - startTime : duration),
+            y: getPanStartY(panDirection, startTime && endTime ? endTime - startTime : duration),
           },
         }
       : { filter: 'setsar', options: '1' };

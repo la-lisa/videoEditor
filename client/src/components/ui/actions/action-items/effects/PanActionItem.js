@@ -24,7 +24,7 @@ export default function PanActionItem() {
         {Object.values(PAN_DIRECTION).map((direction) => {
           return (
             <MenuItem
-              disabled={!panShot || direction !== PAN_DIRECTION._LEFT_TO_RIGHT}
+              disabled={!panShot}
               key={direction}
               onClick={() => setPanDirection(direction)}
               selected={panDirection === direction}

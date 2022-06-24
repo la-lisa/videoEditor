@@ -70,7 +70,12 @@ export const createUndoEditorSlice = undoMiddleware(
     setPanDirection: (panDirection) => set({ panDirection: panDirection }),
     zoomPan: false,
     // disable panShot on zoomPan enable
-    setZoomPan: (zoomPan) => set({ zoomPan: zoomPan, ...(get().panShot ? { panShot: false } : {}) }),
+    setZoomPan: (zoomPan) =>
+      set({
+        zoomPan: zoomPan,
+        videoFit: zoomPan ? VIDEO_FIT._COVER : VIDEO_FIT._CONTAIN,
+        ...(get().panShot ? { panShot: false } : {}),
+      }),
     zoomPanDirection: ZOOMPAN_OPTIONS._CENTER,
     setZoomPanDirection: (zoomPanDirection) => set({ zoomPanDirection: zoomPanDirection }),
     outputFormat: OUTPUT_FORMAT._MP4,
